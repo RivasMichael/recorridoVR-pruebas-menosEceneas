@@ -587,8 +587,14 @@
                         imgEl = document.createElement('a-plane');
                         imgEl.setAttribute('width', w.toFixed(2));
                         imgEl.setAttribute('height', IMG_H.toFixed(2));
-                        imgEl.setAttribute('src', imgSrc);
-                        imgEl.setAttribute('shader', 'flat');
+                        imgEl.setAttribute('material', 'shader: flat; src: url(' + imgSrc + '); side: double; transparent: false; opacity: 1; depthTest: true; depthWrite: true');
+                        imgEl.addEventListener('materialtextureloaded', function () {
+                            var mesh = imgEl.getObject3D('mesh');
+                            if (mesh && mesh.material) mesh.material.needsUpdate = true;
+                        });
+                        imgEl.addEventListener('materialtextureerror', function () {
+                            console.warn('No se pudo cargar la imagen del hotspot:', imgSrc);
+                        });
                     }
 
                     var attempts = 0;
@@ -767,7 +773,7 @@
 
             panel.setAttribute('visible', 'true');
             panel.classList.add('panel-activo');
-            if (fondoOscuro) fondoOscuro.setAttribute('visible', 'true');
+            if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
             if (flechas) flechas.setAttribute('visible', 'false');
 
             var camEl = document.querySelector('#camara-principal');
