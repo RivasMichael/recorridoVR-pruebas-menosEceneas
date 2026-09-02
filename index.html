@@ -1094,8 +1094,44 @@
 
         AFRAME.registerComponent('vr-controller-listener', {
             init: function () {
-                this.el.addEventListener('abuttondown', toggleMenu3D);
-                this.el.addEventListener('xbuttondown', toggleMenu3D);
+                var controller = this.el;
+                var lastActivation = 0;
+
+                function findHotspotTargetFromRay() {
+                    var raycaster = controller.components && controller.components.raycaster;
+                    var intersections = raycaster && raycaster.intersections;
+                    if (!intersections || !intersections.length) return null;
+
+                    var target = intersections[0].object && intersections[0].object.el;
+                    while (target && target !== controller.sceneEl) {
+                        if (target.components && target.components['hotspot-info']) return target;
+                        if (target.hasAttribute && target.hasAttribute('hotspot-info')) return target;
+                        target = target.parentElement;
+                    }
+                    return null;
+                }
+
+                function activateHotspot(evt) {
+                    var now = performance.now();
+                    if (now - lastActivation < 180) return;
+
+                    var target = findHotspotTargetFromRay();
+                    if (!target) return;
+
+                    lastActivation = now;
+                    if (evt.preventDefault) evt.preventDefault();
+                    if (evt.stopPropagation) evt.stopPropagation();
+                    target.emit('click', {
+                        cursorEl: controller,
+                        controllerEl: controller,
+                        sourceEvent: evt
+                    }, false);
+                }
+
+                controller.addEventListener('abuttondown', toggleMenu3D);
+                controller.addEventListener('xbuttondown', toggleMenu3D);
+                controller.addEventListener('triggerdown', activateHotspot);
+                controller.addEventListener('selectstart', activateHotspot);
             }
         });
 
