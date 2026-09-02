@@ -538,12 +538,20 @@
                         return p;
                     }
 
-                    function mkTroika(value, color, fontSize, maxW) {
+                    function mkRounded(color, width, height, radius, px, py, pz, opacity, transparent) {
+                        var e = document.createElement('a-entity');
+                        e.setAttribute('geometry', 'primitive: rounded-rect; width: ' + width + '; height: ' + height + '; radius: ' + radius);
+                        e.setAttribute('material', 'shader: flat; color: ' + color + '; opacity: ' + opacity + (transparent ? '; transparent: true' : ''));
+                        e.setAttribute('position', px + ' ' + py + ' ' + pz);
+                        return e;
+                    }
+
+                    function mkTroika(value, color, fontSize, maxW, align) {
                         var e = document.createElement('a-entity');
                         e.setAttribute('troika-text', {
                             value: value, color: color,
                             fontSize: fontSize, maxWidth: maxW,
-                            textAlign: 'center', anchorX: 'center', anchorY: 'top'
+                            textAlign: align || 'center', anchorX: 'center', anchorY: 'top'
                         });
                         return e;
                     }
@@ -569,12 +577,12 @@
                     var titleTextValue = texts[0] ? (texts[0].getAttribute('value') || '') : '';
                     var titleEl = null, descEl = null;
                     if (texts[0]) {
-                        titleEl = mkTroika(titleTextValue, '#E3173E', 0.22, w - 0.4);
+                        titleEl = mkTroika(titleTextValue, '#E3173E', 0.24, w - 0.55);
                         panel.appendChild(titleEl);
                         texts[0].parentNode.removeChild(texts[0]);
                     }
                     if (texts[1]) {
-                        descEl = mkTroika(texts[1].getAttribute('value') || '', '#555555', 0.185, w - 0.5);
+                        descEl = mkTroika(texts[1].getAttribute('value') || '', '#333333', 0.195, w - 0.60);
                         panel.appendChild(descEl);
                         texts[1].parentNode.removeChild(texts[1]);
                     }
@@ -608,10 +616,10 @@
                         dh = dh || (descEl  ? 0.24 : 0);
 
                         if (isPremium && imgEl) {
-                            /* ── PREMIUM CARD (imagen + badge + divider) ── */
-                            // IP = padding superior antes de la imagen (muestra esquinas redondeadas del card arriba)
-                            var IP = 0.02;
-                            var BG = 0.16, BH = 0.21, DG = 0.12, DH = 0.026, TG = 0.14, BP = 0.26;
+                            /* ── PREMIUM VR CARD (imagen + contenido legible en lentes) ── */
+                            var IP = 0.08;
+                            var IMG_W = w - 0.26;
+                            var BG = 0.18, BH = 0.24, DG = 0.14, DH = 0.028, TG = 0.16, BP = 0.28;
                             var h   = IP + IMG_H + BG + BH + DG + DH + TG + th + GAP + dh + BP;
                             var topY = h / 2;
 
@@ -621,71 +629,49 @@
                             var titlePY = topY - IP - IMG_H - BG - BH - DG - DH - TG;
                             var descPY  = titlePY - th - GAP;
 
-                            // Sombra redondeada
-                            var shadowEl = document.createElement('a-entity');
-                            shadowEl.setAttribute('geometry', 'primitive: rounded-rect; width: ' + (w+0.28).toFixed(2) + '; height: ' + (h+0.28).toFixed(2) + '; radius: 0.14');
-                            shadowEl.setAttribute('material', 'color: #000000; opacity: 0.26; transparent: true');
-                            shadowEl.setAttribute('position', '0.09 -0.09 -0.06');
-                            panel.appendChild(shadowEl);
+                            panel.appendChild(mkRounded('#000000', (w+0.34).toFixed(2), (h+0.34).toFixed(2), '0.18', '0.10', '-0.10', '-0.07', '0.32', true));
+                            panel.appendChild(mkRounded('#E3173E', (w+0.10).toFixed(2), (h+0.10).toFixed(2), '0.16', '0', '0', '-0.03', '1', false));
+                            panel.appendChild(mkRounded('#FFFFFF', w.toFixed(2), h.toFixed(2), '0.14', '0', '0', '-0.02', '1', false));
 
-                            // Borde/marco rojo (ligeramente más grande que el card)
-                            var borderEl = document.createElement('a-entity');
-                            borderEl.setAttribute('geometry', 'primitive: rounded-rect; width: ' + (w+0.08).toFixed(2) + '; height: ' + (h+0.08).toFixed(2) + '; radius: 0.14');
-                            borderEl.setAttribute('material', 'color: #E3173E; opacity: 1');
-                            borderEl.setAttribute('position', '0 0 -0.02');
-                            panel.appendChild(borderEl);
-
-                            // Fondo blanco con esquinas redondeadas (cubre TODO el card)
-                            var bgEl = document.createElement('a-entity');
-                            bgEl.setAttribute('geometry', 'primitive: rounded-rect; width: ' + w.toFixed(2) + '; height: ' + h.toFixed(2) + '; radius: 0.12');
-                            bgEl.setAttribute('material', 'color: #FFFFFF; opacity: 1');
-                            bgEl.setAttribute('position', '0 0 -0.01');
-                            panel.appendChild(bgEl);
-
-                            // Imagen a ancho completo, debajo del margen IP (las esquinas superiores del fondo blanco quedan visibles)
-                            imgEl.setAttribute('width', w.toFixed(2));
+                            imgEl.setAttribute('width', IMG_W.toFixed(2));
                             imgEl.setAttribute('height', IMG_H.toFixed(2));
                             imgEl.setAttribute('position', '0 ' + imgCY.toFixed(3) + ' 0.02');
                             panel.appendChild(imgEl);
 
-                            // Badge (fondo rosa claro + texto rojo)
-                            var bW = Math.min(titleTextValue.length * 0.092 + 0.30, 2.8);
-                            var bX = (-w / 2 + bW / 2 + 0.22).toFixed(3);
+                            panel.appendChild(mkPlane('#000000', IMG_W.toFixed(2), '0.46', '0', (imgCY - IMG_H / 2 + 0.23).toFixed(3), '0.03', '0.35', true));
+
+                            var bW = 1.12;
+                            var bX = (-w / 2 + bW / 2 + 0.26).toFixed(3);
                             var bY = badgeCY.toFixed(3);
-                            var badge = document.createElement('a-entity');
-                            badge.setAttribute('geometry', 'primitive: rounded-rect; width:' + bW.toFixed(2) + '; height:' + BH.toFixed(2) + '; radius:0.07');
-                            badge.setAttribute('material', 'color: #fde8ec; opacity: 1');
-                            badge.setAttribute('position', bX + ' ' + bY + ' 0.02');
-                            panel.appendChild(badge);
+                            panel.appendChild(mkRounded('#FDE8EC', bW.toFixed(2), BH.toFixed(2), '0.07', bX, bY, '0.03', '1', false));
 
                             var badgeTxt = document.createElement('a-entity');
                             badgeTxt.setAttribute('troika-text', {
-                                value: titleTextValue, color: '#E3173E',
-                                fontSize: 0.088, maxWidth: bW - 0.12,
+                                value: 'ESAN 360', color: '#E3173E',
+                                fontSize: 0.105, maxWidth: bW - 0.12,
                                 textAlign: 'center', anchorX: 'center', anchorY: 'middle',
-                                fontWeight: 'bold', letterSpacing: 0.06
+                                fontWeight: 'bold'
                             });
                             badgeTxt.setAttribute('position', bX + ' ' + bY + ' 0.04');
                             panel.appendChild(badgeTxt);
 
-                            // Línea divisora roja (izquierda → derecha degradando)
-                            panel.appendChild(mkPlane('#E3173E', (w - 0.44).toFixed(2), DH.toFixed(3),
-                                (-0.22).toFixed(2), divCY.toFixed(3), '0.02', '1', false));
+                            panel.appendChild(mkRounded('#E3173E', (w - 0.54).toFixed(2), DH.toFixed(3), '0.012',
+                                '0', divCY.toFixed(3), '0.03', '1', false));
 
-                            // Textos
                             if (titleEl) titleEl.setAttribute('position', '0 ' + titlePY.toFixed(3) + ' 0.06');
                             if (descEl)  descEl.setAttribute('position',  '0 ' + descPY.toFixed(3)  + ' 0.06');
 
-                            // Botón cerrar (gris oscuro sobre la imagen)
                             var closeBtn = panel.querySelector('.close-btn');
                             if (closeBtn) {
-                                closeBtn.setAttribute('position', (w/2 - 0.22).toFixed(2) + ' ' + (topY - 0.22).toFixed(2) + ' 0.05');
-                                closeBtn.setAttribute('color', '#3a3a3a');
-                                closeBtn.setAttribute('opacity', '0.82');
-                                closeBtn.setAttribute('width', '0.32');
-                                closeBtn.setAttribute('height', '0.32');
+                                closeBtn.setAttribute('geometry', 'primitive: circle; radius: 0.18');
+                                closeBtn.setAttribute('material', 'shader: flat; color: #1F1F1F; opacity: 0.88; transparent: true');
+                                closeBtn.setAttribute('position', (w/2 - 0.30).toFixed(2) + ' ' + (topY - 0.30).toFixed(2) + ' 0.07');
                                 var cbTxt = closeBtn.querySelector('a-text');
-                                if (cbTxt) { cbTxt.setAttribute('color', '#FFFFFF'); cbTxt.setAttribute('width', '5'); }
+                                if (cbTxt) {
+                                    cbTxt.setAttribute('color', '#FFFFFF');
+                                    cbTxt.setAttribute('width', '4');
+                                    cbTxt.setAttribute('position', '0 0 0.02');
+                                }
                             }
 
                         } else {
@@ -1345,32 +1331,49 @@
                     });
                 })(flecha.target);
 
-                var nombreLugar = flecha.label || nombresDestinos[flecha.target] || flecha.target;
-                var lineas = nombreLugar.split('\n');
-                var maxLen = Math.max(...lineas.map(l => l.length));
-                var cardWidth = Math.max(maxLen * 0.13 + 0.4, 1.0);
-                var cardHeight = lineas.length > 1 ? 0.80 : 0.58;
+                var nombreLugar = (flecha.label || nombresDestinos[flecha.target] || flecha.target).replace(/\n/g, ' ');
+                var maxLen = nombreLugar.length;
+                var labelWidth = Math.min(Math.max(maxLen * 0.105 + 0.45, 1.20), 3.20);
+                var labelHeight = maxLen > 22 ? 0.54 : 0.42;
 
                 var etiqueta = document.createElement('a-entity');
                 etiqueta.classList.add('etiqueta-flotante');
-                etiqueta.setAttribute('position', '0 1.2 0.05');
-                etiqueta.setAttribute('scale', '0.9 0.9 0.9');
+                etiqueta.setAttribute('position', '0 1.08 0.08');
+                etiqueta.setAttribute('scale', '0.95 0.95 0.95');
                 etiqueta.setAttribute('visible', 'false');
 
+                var sombra = document.createElement('a-entity');
+                sombra.setAttribute('geometry', `primitive: rounded-rect; width: ${(labelWidth + 0.08).toFixed(2)}; height: ${(labelHeight + 0.08).toFixed(2)}; radius: 0.09`);
+                sombra.setAttribute('material', 'shader: flat; color: #000000; opacity: 0.36; transparent: true');
+                sombra.setAttribute('position', '0.04 -0.04 -0.03');
+                etiqueta.appendChild(sombra);
+
                 var fondo = document.createElement('a-entity');
-                fondo.setAttribute('geometry', `primitive: rounded-rect; width: ${cardWidth.toFixed(2)}; height: ${cardHeight}; radius: 0.08`);
-                fondo.setAttribute('material', 'color: #E3173E; opacity: 0.95');
+                fondo.setAttribute('geometry', `primitive: rounded-rect; width: ${labelWidth.toFixed(2)}; height: ${labelHeight.toFixed(2)}; radius: 0.08`);
+                fondo.setAttribute('material', 'shader: flat; color: #1E1E1E; opacity: 0.88; transparent: true');
                 fondo.setAttribute('position', '0 0 -0.01');
                 etiqueta.appendChild(fondo);
 
-                var texto = document.createElement('a-text');
-                texto.setAttribute('value', nombreLugar);
-                texto.setAttribute('align', 'center');
-                texto.setAttribute('color', '#FFFFFF');
-                texto.setAttribute('font', 'exo2semibold');
-                texto.setAttribute('width', (cardWidth * 0.88).toFixed(2));
-                texto.setAttribute('wrap-count', String(maxLen));
-                texto.setAttribute('position', '0 0 0.01');
+                var acento = document.createElement('a-plane');
+                acento.setAttribute('color', '#E3173E');
+                acento.setAttribute('width', Math.min(labelWidth - 0.28, 0.75).toFixed(2));
+                acento.setAttribute('height', '0.035');
+                acento.setAttribute('shader', 'flat');
+                acento.setAttribute('position', `0 ${(-labelHeight / 2 + 0.07).toFixed(3)} 0.01`);
+                etiqueta.appendChild(acento);
+
+                var texto = document.createElement('a-entity');
+                texto.setAttribute('troika-text', {
+                    value: nombreLugar,
+                    color: '#FFFFFF',
+                    fontSize: 0.135,
+                    maxWidth: labelWidth - 0.24,
+                    textAlign: 'center',
+                    anchorX: 'center',
+                    anchorY: 'middle',
+                    fontWeight: 'bold'
+                });
+                texto.setAttribute('position', '0 0.025 0.03');
                 etiqueta.appendChild(texto);
 
                 entidad.appendChild(etiqueta);
