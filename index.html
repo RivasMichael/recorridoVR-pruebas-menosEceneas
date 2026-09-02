@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Tour ESAN 360 - Experiencia VR Premium</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
@@ -11,22 +12,91 @@
     <script
         src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.min.js"></script>
 
-    <style> 
+    <style>
+        :root {
+            --font-titulo: 'Segoe UI', Arial, sans-serif;
+            --font-cuerpo: 'Segoe UI', Arial, sans-serif;
+            --color-primario: #E3173E;
+            --color-secundario: #696A6D;
+            --color-negro: #000000;
+            --color-blanco: #FFFFFF;
+            --esan-red: var(--color-primario);
+            --esan-gray: var(--color-secundario);
+            --radius-card: 18px;
+            --shadow-card: 0 24px 64px rgba(0,0,0,0.45);
+        }
+
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-cuerpo);
+        }
+
         #pantalla-carga {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #E3173E, #E3173E);
+            background: var(--color-negro);
             z-index: 9999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            gap: 12px;
+            color: var(--color-blanco);
+            font-family: var(--font-cuerpo);
             transition: opacity 1s ease, transform 1s ease;
+        }
+
+        #pantalla-carga img {
+            width: clamp(120px, 24vw, 220px);
+            height: auto;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+
+        #pantalla-carga h1 {
+            font-family: var(--font-titulo);
+            font-size: clamp(2rem, 5vw, 3.6rem);
+            margin: 0;
+            letter-spacing: 0.02em;
+        }
+
+        #pantalla-carga p {
+            margin: 0;
+            color: var(--color-secundario);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .loader-bar {
+            width: 180px;
+            height: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+        }
+
+        .loader-bar span {
+            display: block;
+            width: 48%;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--color-primario);
+            animation: loadBar 1.6s ease-in-out infinite;
+        }
+
+        @keyframes loadBar {
+            0% { transform: translateX(-110%); }
+            50% { transform: translateX(70%); }
+            100% { transform: translateX(220%); }
         }
 
         .oculto {
@@ -74,6 +144,7 @@
             cursor: pointer;
             z-index: 100;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: none;
         }
 
         #btn-capturar:hover {
@@ -100,14 +171,12 @@
             padding: 6px 12px; border-radius: 6px;
             z-index: 9999; cursor: pointer;
             border: 1px solid #00FF88;
+            display: none;
         }
+        body.debug-tools #btn-capturar,
+        body.debug-tools #dbg-btn { display: block; }
 
         /* ── 2D Info Card ── */
-        :root {
-            --esan-red: #E3173E;
-            --radius-card: 18px;
-            --shadow-card: 0 24px 64px rgba(0,0,0,0.45);
-        }
         #card-backdrop {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.5);
@@ -129,7 +198,7 @@
             z-index: 2001;
             opacity: 0; pointer-events: none;
             transition: opacity .28s ease, transform .28s cubic-bezier(.34,1.56,.64,1);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--font-cuerpo);
         }
         #info-card-2d.visible {
             opacity: 1; pointer-events: all;
@@ -137,22 +206,39 @@
         }
         .ic-img-wrap {
             position: relative;
-            width: 100%; height: 180px;
+            width: 100%; height: 170px;
             overflow: hidden;
             background: linear-gradient(135deg, #E3173E 0%, #7a0020 100%);
         }
+        .ic-img-wrap::before {
+            content: "ESAN";
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.18);
+            font-family: var(--font-titulo);
+            font-size: 78px;
+            font-weight: 900;
+            letter-spacing: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
         .ic-img-wrap img {
+            position: relative;
+            z-index: 1;
             width: 100%; height: 100%;
             object-fit: cover; object-position: center;
             display: block;
-            filter: brightness(0.80);
+            filter: brightness(0.82);
         }
         .ic-close {
             position: absolute; top: 12px; right: 12px;
             width: 34px; height: 34px;
             background: rgba(0,0,0,0.55);
             border: none; border-radius: 50%;
-            color: #fff; font-size: 18px; line-height: 1;
+            color: #fff; font-size: 16px; line-height: 1;
             cursor: pointer; display: flex;
             align-items: center; justify-content: center;
             transition: background .18s;
@@ -169,6 +255,7 @@
             margin-bottom: 12px;
         }
         .ic-title {
+            font-family: var(--font-titulo);
             font-size: 17px; font-weight: 700;
             color: var(--esan-red);
             text-transform: uppercase;
@@ -181,9 +268,11 @@
             border-radius: 2px; margin-bottom: 14px;
         }
         .ic-desc {
-            font-size: 13.5px; color: #696A6D;
+            font-family: var(--font-cuerpo);
+            font-size: 13.5px; color: var(--color-secundario);
             line-height: 1.65; margin: 0;
         }
+
     </style>
 
     <script>
@@ -345,14 +434,14 @@
                 this.manoActiva = null;
                 this.agarrado = false;
 
-                this.el.addEventListener('mousedown', (evt) => {
+                const agarrar = (evt) => {
                     if (this.agarrado) return;
                     this.manoActiva = evt.detail.cursorEl || document.querySelector('#camara-principal');
                     this.agarrado = true;
                     this.el.removeAttribute('dynamic-body');
-                });
+                };
 
-                this.el.addEventListener('mouseup', () => {
+                const soltar = () => {
                     if (!this.agarrado) return;
                     this.agarrado = false;
                     this.el.setAttribute('dynamic-body', 'mass: 1; bounce: 0.75');
@@ -373,7 +462,14 @@
                         }
                     }, 50);
                     this.manoActiva = null;
-                });
+                };
+
+                this.el.addEventListener('mousedown', agarrar);
+                this.el.addEventListener('triggerdown', agarrar);
+                this.el.addEventListener('gripdown', agarrar);
+                this.el.addEventListener('mouseup', soltar);
+                this.el.addEventListener('triggerup', soltar);
+                this.el.addEventListener('gripup', soltar);
             },
             tick: function () {
                 if (this.agarrado && this.manoActiva) {
@@ -483,8 +579,8 @@
                         texts[1].parentNode.removeChild(texts[1]);
                     }
 
-                    var imgSrc    = panel.getAttribute('data-card-img');
-                    var isPremium = panel.getAttribute('data-premium') === 'true';
+                    var imgSrc    = panel.getAttribute('data-card-img') || panel.getAttribute('data-imagen');
+                    var isPremium = panel.getAttribute('data-premium') === 'true' || !!panel.getAttribute('data-imagen');
                     var IMG_H = parseFloat((w / 1.5).toFixed(3)); // 3:2 ratio (fuenteF.webp 5760×3840)
                     var imgEl = null;
                     if (imgSrc) {
@@ -639,6 +735,54 @@
             }
         });
 
+        function isInVisibleHotspotGroup(el) {
+            var group = el && el.parentNode;
+            while (group && !(group.classList && group.classList.contains('grupo-hotspots'))) {
+                group = group.parentNode;
+            }
+            return !group || !group.object3D || group.object3D.visible;
+        }
+
+        function cerrarPanelVR(panel) {
+            if (!panel) panel = document.querySelector('.panel-activo');
+            if (!panel) return;
+            var fondoOscuro = document.querySelector('#hotspot-darkbg');
+            var flechas = document.querySelector('#flechas-container');
+            panel.setAttribute('visible', 'false');
+            panel.classList.remove('panel-activo');
+            if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
+            if (!document.querySelector('.panel-activo') && flechas) flechas.setAttribute('visible', 'true');
+            refreshRaycasters();
+        }
+
+        function abrirPanelVR(panel) {
+            if (!panel) return;
+            var fondoOscuro = document.querySelector('#hotspot-darkbg');
+            var flechas = document.querySelector('#flechas-container');
+            var panelPrevio = document.querySelector('.panel-activo');
+            if (panelPrevio && panelPrevio !== panel) cerrarPanelVR(panelPrevio);
+
+            panel.setAttribute('visible', 'true');
+            panel.classList.add('panel-activo');
+            if (fondoOscuro) fondoOscuro.setAttribute('visible', 'true');
+            if (flechas) flechas.setAttribute('visible', 'false');
+
+            var camEl = document.querySelector('#camara-principal');
+            if (!camEl) return;
+            var cam = camEl.object3D;
+            var startPos = new THREE.Vector3(0, 0, -11);
+            startPos.applyMatrix4(cam.matrixWorld);
+            var camWorldPos = new THREE.Vector3();
+            cam.getWorldPosition(camWorldPos);
+            startPos.y = camWorldPos.y - 0.3;
+            panel.object3D.position.copy(startPos);
+
+            var lookAtPos = new THREE.Vector3().copy(camWorldPos);
+            lookAtPos.y = panel.object3D.position.y;
+            panel.object3D.lookAt(lookAtPos);
+            refreshRaycasters();
+        }
+
         AFRAME.registerComponent('hotspot-info', {
             schema: {
                 target: { type: 'string' },
@@ -650,40 +794,12 @@
 
                 el.addEventListener('click', function (evt) {
                     var panel = document.querySelector(data.target);
-                    var fondoOscuro = document.querySelector('#hotspot-darkbg'); 
 
                     if (!panel) return;
                     evt.stopPropagation();
-
-                    var flechas = document.querySelector('#flechas-container');
-                    if (data.action === 'close') {
-                        panel.setAttribute('visible', 'false');
-                        panel.classList.remove('panel-activo');
-                        if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
-                        if (!document.querySelector('.panel-activo') && flechas) flechas.setAttribute('visible', 'true');
-                    } else {
-                        var panelPrevio = document.querySelector('.panel-activo');
-                        if (panelPrevio && panelPrevio !== panel) {
-                            panelPrevio.setAttribute('visible', 'false');
-                            panelPrevio.classList.remove('panel-activo');
-                        }
-                        panel.setAttribute('visible', 'true');
-                        panel.classList.add('panel-activo');
-                        if (fondoOscuro) fondoOscuro.setAttribute('visible', 'true');
-                        if (flechas) flechas.setAttribute('visible', 'false');
-
-                        var cam = document.querySelector('#camara-principal').object3D;
-                        var startPos = new THREE.Vector3(0, 0, -11);
-                        startPos.applyMatrix4(cam.matrixWorld);
-                        var camWorldPos = new THREE.Vector3();
-                        cam.getWorldPosition(camWorldPos);
-                        startPos.y = camWorldPos.y - 0.3;
-                        panel.object3D.position.copy(startPos);
-
-                        var lookAtPos = new THREE.Vector3().copy(camWorldPos);
-                        lookAtPos.y = panel.object3D.position.y;
-                        panel.object3D.lookAt(lookAtPos);
-                    }
+                    if (data.action !== 'close' && !isInVisibleHotspotGroup(el)) return;
+                    if (data.action === 'close') cerrarPanelVR(panel);
+                    else abrirPanelVR(panel);
                 });
 
                 el.addEventListener('mouseenter', function () {
@@ -988,6 +1104,10 @@
 
         function iniciarTransicion(nombreEscena, direccionDeseada) {
             var datos = escenas[nombreEscena];
+            if (!datos) {
+                console.warn('Escena no encontrada:', nombreEscena);
+                return;
+            }
             if (datos && datos.imagen && !datos.imagen.startsWith('#') && !_preCache[datos.imagen]) {
                 _preCache[datos.imagen] = true;
                 var _warmImg = new Image();
@@ -1015,7 +1135,7 @@
                     p.classList.remove('panel-activo');
                 });
                 var iconos = grupo.querySelectorAll('.icono-hotspot');
-                iconos.forEach(i => i.classList.remove('clickable'));
+                iconos.forEach(i => i.classList.add('clickable'));
             });
 
             overlayFade.setAttribute('animation', { property: 'material.opacity', from: 0, to: 1, dur: duracionFade, easing: 'linear' });
@@ -1058,6 +1178,8 @@
                     }
 
                     overlayFade.setAttribute('animation', { property: 'material.opacity', from: 1, to: 0, dur: duracionFade, easing: 'linear' });
+                    refreshRaycasters();
+                    _escenaActual = nombreEscena;
                     precargarAdyacentes(nombreEscena);
                 }
 
@@ -1101,9 +1223,17 @@
             btnReset.classList.add('clickable');
 
             resetearPelota();
+            refreshRaycasters();
         }
 
         function flowchart_step() { return; }
+
+        function refreshRaycasters() {
+            document.querySelectorAll('[raycaster]').forEach(function (el) {
+                var raycaster = el.components && el.components.raycaster;
+                if (raycaster && raycaster.refreshObjects) raycaster.refreshObjects();
+            });
+        }
 
         function desactivarMinijuego() {
             document.querySelector('#entorno-fisicas-basquet').setAttribute('visible', 'false');
@@ -1115,6 +1245,7 @@
             var btnLanzarMinijuego = document.querySelector('#btn-lanzar-minijuego');
             btnLanzarMinijuego.setAttribute('visible', 'true');
             btnLanzarMinijuego.classList.add('clickable');
+            refreshRaycasters();
         }
 
         function generarFlechas(listaFlechas) {
@@ -1182,6 +1313,7 @@
                 wrapper.appendChild(entidad);
                 contenedor.appendChild(wrapper);
             });
+            refreshRaycasters();
         }
 
         function construirMenu3D() {
@@ -1288,17 +1420,22 @@
                 if (btn2D) btn2D.innerText = 'Cerrar Menu de Navegacion';
                 var botonesMenu = menu.querySelectorAll('.menu-btn');
                 botonesMenu.forEach(b => b.classList.add('clickable'));
+                refreshRaycasters();
             } else {
                 menu.setAttribute('visible', 'false');
                 if (btn2D) btn2D.innerText = 'Abrir Menu de Navegacion';
                 var botonesMenu = menu.querySelectorAll('.menu-btn');
                 botonesMenu.forEach(b => b.classList.remove('clickable'));
+                refreshRaycasters();
             }
         }
 
         window.onload = function () {
             var datos = escenas['fuera'];
             var cieloFondo = document.querySelector('#cielo-fondo');
+            document.querySelectorAll('.icono-hotspot').forEach(function (icono) {
+                icono.classList.add('clickable');
+            });
 
             function revelarInicio() {
                 ocultarLoader();
@@ -1308,6 +1445,8 @@
                     hotspotEntrada.setAttribute('visible', 'true');
                     hotspotEntrada.querySelectorAll('.icono-hotspot').forEach(i => i.classList.add('clickable'));
                 }
+                _escenaActual = 'fuera';
+                refreshRaycasters();
             }
 
             cieloFondo.setAttribute('src', datos.imagen);
@@ -1329,6 +1468,7 @@
             document.querySelector('#btn-lanzar-minijuego').addEventListener('click', activarMinijuego);
             document.querySelector('#btn-volver-tour').addEventListener('click', desactivarMinijuego);
             document.querySelector('#btn-reset-balon').addEventListener('click', resetearPelota);
+            bindMouseHotspotFallback();
 
             var darkbg = document.querySelector('#hotspot-darkbg');
             if (darkbg) {
@@ -1445,6 +1585,84 @@
             document.getElementById('card-backdrop').classList.remove('visible');
         }
 
+        function getHotspotTarget(icono) {
+            var comp = icono.components && icono.components['hotspot-info'];
+            if (comp && comp.data && comp.data.target) return comp.data.target;
+            var raw = icono.getAttribute('hotspot-info');
+            if (raw && raw.target) return raw.target;
+            if (typeof raw === 'string') {
+                var match = raw.match(/target:\s*([^;]+)/);
+                if (match) return match[1].trim();
+            }
+            return '';
+        }
+
+        function bindMouseHotspotFallback() {
+            var scene = document.querySelector('a-scene');
+            if (!scene) return;
+            scene.addEventListener('click', function (evt) {
+                if (_isDragging) return;
+
+                var intersectedEl = evt.detail && evt.detail.intersectedEl;
+                var activePanel = document.querySelector('.panel-activo');
+                if (activePanel) {
+                    if (!intersectedEl || !activePanel.contains(intersectedEl)) {
+                        cerrarPanelVR(activePanel);
+                    }
+                    return;
+                }
+
+                if (intersectedEl) {
+                    var hotspotEl = intersectedEl.classList && intersectedEl.classList.contains('icono-hotspot')
+                        ? intersectedEl
+                        : intersectedEl.closest && intersectedEl.closest('.icono-hotspot');
+                    if (hotspotEl && isInVisibleHotspotGroup(hotspotEl)) {
+                        var target = getHotspotTarget(hotspotEl);
+                        if (target) abrirPanelVR(document.querySelector(target));
+                    }
+                    return;
+                }
+
+                var camera = scene.camera;
+                var canvas = scene.canvas;
+                if (!camera || !canvas) return;
+
+                var rect = canvas.getBoundingClientRect();
+                var sourceEvent = evt.sourceEvent || evt.detail && evt.detail.mouseEvent || evt;
+                var clickX = sourceEvent.clientX - rect.left;
+                var clickY = sourceEvent.clientY - rect.top;
+                if (!Number.isFinite(clickX) || !Number.isFinite(clickY)) return;
+                var closest = null;
+                var closestDistance = Infinity;
+                var projected = new THREE.Vector3();
+
+                document.querySelectorAll('.grupo-hotspots').forEach(function (group) {
+                    if (!group.object3D || !group.object3D.visible) return;
+                    group.querySelectorAll('.icono-hotspot').forEach(function (icono) {
+                        var target = getHotspotTarget(icono);
+                        if (!target) return;
+                        icono.object3D.getWorldPosition(projected);
+                        projected.project(camera);
+                        if (projected.z > 1 || projected.x < -1 || projected.x > 1 || projected.y < -1 || projected.y > 1) return;
+
+                        var screenX = (projected.x + 1) / 2 * rect.width;
+                        var screenY = (-projected.y + 1) / 2 * rect.height;
+                        var dx = screenX - clickX;
+                        var dy = screenY - clickY;
+                        var distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closest = target;
+                        }
+                    });
+                });
+
+                if (closest && closestDistance <= 44) {
+                    abrirPanelVR(document.querySelector(closest));
+                }
+            });
+        }
+
         AFRAME.registerComponent('card-2d-trigger', {
             schema: { panel: { type: 'string' } },
             init: function () {
@@ -1468,8 +1686,10 @@
 
 <body>
     <div id="pantalla-carga">
-        <h1 style="font-size: 3em; margin-bottom: 10px;">Tour ESAN 360</h1>
-        <p style="font-size: 1.2em; letter-spacing: 2px;">INICIANDO REALIDAD VIRTUAL...</p>
+        <img src="imagenes/esann.png" alt="ESAN">
+        <h1>Tour ESAN 360</h1>
+        <p>Iniciando realidad virtual</p>
+        <div class="loader-bar"><span></span></div>
     </div>
 
     <button id="btn-menu-2d">Abrir Menu de Navegacion</button>
@@ -1489,7 +1709,7 @@
     </div>
 
     <a-scene renderer="antialias: true; colorManagement: true; sortObjects: true;" cursor="rayOrigin: mouse"
-        raycaster="objects: .clickable">
+        raycaster="objects: .clickable, .icono-hotspot">
 
         <a-assets timeout="10000">
             <img id="img-entrada" src="imagenes/entrada esan.jpg">
@@ -2775,7 +2995,7 @@
             <a-camera id="camara-principal" camera wasd-controls-enabled="false" look-controls="reverseMouseDrag: true">
                 <!-- Cursor para navegador web (desktop). En VR no aplica porque no hay mouse. -->
                 <a-entity cursor="fuse: false; rayOrigin: mouse"
-                    raycaster="objects: .clickable; far: 100">
+                    raycaster="objects: .clickable, .icono-hotspot; far: 100">
                 </a-entity>
 
                 <a-entity id="overlay-fade" geometry="primitive: sphere; radius: 0.1"
@@ -2786,8 +3006,10 @@
                 </a-entity>
             </a-camera>
 
-            <a-entity laser-controls="hand: right" raycaster="objects: .clickable" vr-controller-listener></a-entity>
-            <a-entity laser-controls="hand: left" raycaster="objects: .clickable" vr-controller-listener></a-entity>
+            <a-entity laser-controls="hand: right" cursor="rayOrigin: entity; fuse: false"
+                raycaster="objects: .clickable, .icono-hotspot; far: 100" vr-controller-listener></a-entity>
+            <a-entity laser-controls="hand: left" cursor="rayOrigin: entity; fuse: false"
+                raycaster="objects: .clickable, .icono-hotspot; far: 100" vr-controller-listener></a-entity>
         </a-entity>
 
     </a-scene>
@@ -2801,11 +3023,18 @@
     <div id="dbg-btn" onclick="dbgToggle()">📐 Coords</div>
 
     <script>
+        if (new URLSearchParams(window.location.search).get('debug') === '1') {
+            document.body.classList.add('debug-tools');
+        }
+
         var dbgOn = false, dbgRaf = null;
         function dbgToggle() {
             dbgOn = !dbgOn;
-            document.getElementById('dbg-panel').classList.toggle('on', dbgOn);
-            document.getElementById('dbg-btn').style.background = dbgOn ? 'rgba(0,150,60,0.9)' : 'rgba(0,0,0,0.75)';
+            var panel = document.getElementById('dbg-panel');
+            var button = document.getElementById('dbg-btn');
+            if (!panel || !button) return;
+            panel.classList.toggle('on', dbgOn);
+            button.style.background = dbgOn ? 'rgba(0,150,60,0.9)' : 'rgba(0,0,0,0.75)';
             if (dbgOn) {
                 dbgRaf = requestAnimationFrame(dbgTick);
                 document.querySelector('a-scene').addEventListener('click', dbgClick);
