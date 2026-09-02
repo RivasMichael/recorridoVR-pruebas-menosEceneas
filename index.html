@@ -755,8 +755,11 @@
             refreshRaycasters();
         }
 
+        var _lastPanelOpenAt = 0;
+
         function abrirPanelVR(panel) {
             if (!panel) return;
+            _lastPanelOpenAt = performance.now();
             var fondoOscuro = document.querySelector('#hotspot-darkbg');
             var flechas = document.querySelector('#flechas-container');
             var panelPrevio = document.querySelector('.panel-activo');
@@ -1600,38 +1603,17 @@
         function bindMouseHotspotFallback() {
             var scene = document.querySelector('a-scene');
             if (!scene) return;
-            scene.addEventListener('click', function (evt) {
-                if (_isDragging) return;
 
-                var intersectedEl = evt.detail && evt.detail.intersectedEl;
-                var activePanel = document.querySelector('.panel-activo');
-                if (activePanel) {
-                    if (!intersectedEl || !activePanel.contains(intersectedEl)) {
-                        cerrarPanelVR(activePanel);
-                    }
-                    return;
-                }
-
-                if (intersectedEl) {
-                    var hotspotEl = intersectedEl.classList && intersectedEl.classList.contains('icono-hotspot')
-                        ? intersectedEl
-                        : intersectedEl.closest && intersectedEl.closest('.icono-hotspot');
-                    if (hotspotEl && isInVisibleHotspotGroup(hotspotEl)) {
-                        var target = getHotspotTarget(hotspotEl);
-                        if (target) abrirPanelVR(document.querySelector(target));
-                    }
-                    return;
-                }
-
+            function abrirHotspotCercano(clientX, clientY) {
                 var camera = scene.camera;
                 var canvas = scene.canvas;
-                if (!camera || !canvas) return;
+                if (!camera || !canvas) return false;
 
                 var rect = canvas.getBoundingClientRect();
-                var sourceEvent = evt.sourceEvent || evt.detail && evt.detail.mouseEvent || evt;
-                var clickX = sourceEvent.clientX - rect.left;
-                var clickY = sourceEvent.clientY - rect.top;
-                if (!Number.isFinite(clickX) || !Number.isFinite(clickY)) return;
+                var clickX = clientX - rect.left;
+                var clickY = clientY - rect.top;
+                if (!Number.isFinite(clickX) || !Number.isFinite(clickY)) return false;
+
                 var closest = null;
                 var closestDistance = Infinity;
                 var projected = new THREE.Vector3();
@@ -1657,9 +1639,49 @@
                     });
                 });
 
-                if (closest && closestDistance <= 44) {
+                if (closest && closestDistance <= 54) {
                     abrirPanelVR(document.querySelector(closest));
+                    return true;
                 }
+                return false;
+            }
+
+            scene.addEventListener('click', function (evt) {
+                if (_isDragging) return;
+
+                var intersectedEl = evt.detail && evt.detail.intersectedEl;
+                var hotspotEl = intersectedEl && intersectedEl.classList && intersectedEl.classList.contains('icono-hotspot')
+                    ? intersectedEl
+                    : intersectedEl && intersectedEl.closest && intersectedEl.closest('.icono-hotspot');
+                var activePanel = document.querySelector('.panel-activo');
+                if (activePanel) {
+                    if (performance.now() - _lastPanelOpenAt < 250) return;
+                    if (hotspotEl) return;
+                    if (!intersectedEl || !activePanel.contains(intersectedEl)) {
+                        cerrarPanelVR(activePanel);
+                    }
+                    return;
+                }
+
+                if (intersectedEl) {
+                    if (hotspotEl && isInVisibleHotspotGroup(hotspotEl)) {
+                        var target = getHotspotTarget(hotspotEl);
+                        if (target) abrirPanelVR(document.querySelector(target));
+                    }
+                    return;
+                }
+
+                var sourceEvent = evt.sourceEvent || evt.detail && evt.detail.mouseEvent || evt;
+                abrirHotspotCercano(sourceEvent.clientX, sourceEvent.clientY);
+            });
+
+            scene.addEventListener('renderstart', function () {
+                if (!scene.canvas || scene.canvas._hotspotFallbackBound) return;
+                scene.canvas._hotspotFallbackBound = true;
+                scene.canvas.addEventListener('pointerup', function (evt) {
+                    if (_isDragging || document.querySelector('.panel-activo')) return;
+                    abrirHotspotCercano(evt.clientX, evt.clientY);
+                });
             });
         }
 
