@@ -1096,9 +1096,11 @@
             init: function () {
                 var controller = this.el;
                 var lastActivation = 0;
+                var pendingActivation = 0;
 
                 function findHotspotTargetFromRay() {
                     var raycaster = controller.components && controller.components.raycaster;
+                    if (raycaster && raycaster.refreshObjects) raycaster.refreshObjects();
                     var intersections = raycaster && raycaster.intersections;
                     if (!intersections || !intersections.length) return null;
 
@@ -1126,12 +1128,29 @@
                         controllerEl: controller,
                         sourceEvent: evt
                     }, false);
+                    return true;
+                }
+
+                function activateHotspotSoon(evt) {
+                    var startedAt = performance.now();
+                    var token = ++pendingActivation;
+
+                    function tryActivate() {
+                        if (token !== pendingActivation) return;
+                        if (activateHotspot(evt)) return;
+                        if (performance.now() - startedAt > 280) return;
+                        requestAnimationFrame(tryActivate);
+                    }
+
+                    tryActivate();
                 }
 
                 controller.addEventListener('abuttondown', toggleMenu3D);
                 controller.addEventListener('xbuttondown', toggleMenu3D);
-                controller.addEventListener('triggerdown', activateHotspot);
-                controller.addEventListener('selectstart', activateHotspot);
+                controller.addEventListener('triggerdown', activateHotspotSoon);
+                controller.addEventListener('selectstart', activateHotspotSoon);
+                controller.addEventListener('triggerup', activateHotspot);
+                controller.addEventListener('selectend', activateHotspot);
             }
         });
 
