@@ -273,6 +273,212 @@
             line-height: 1.65; margin: 0;
         }
 
+        #btn-menu-2d {
+            min-width: 168px;
+        }
+
+        #destinos-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.42);
+            z-index: 1498;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .22s ease;
+        }
+
+        #destinos-backdrop.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #destinos-panel {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            bottom: 18px;
+            width: min(380px, calc(100vw - 36px));
+            z-index: 1499;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+            transform: translateX(calc(100% + 28px));
+            opacity: 0;
+            pointer-events: none;
+            transition: transform .26s ease, opacity .22s ease;
+        }
+
+        #destinos-panel.visible {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .destinos-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: start;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .destinos-kicker {
+            margin: 0 0 4px;
+            color: var(--esan-red);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .destinos-header h2 {
+            margin: 0;
+            color: #111;
+            font-family: var(--font-titulo);
+            font-size: 22px;
+            line-height: 1.12;
+        }
+
+        .destinos-header p {
+            margin: 7px 0 0;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        #destinos-close {
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 50%;
+            background: #111;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        #destinos-close:hover {
+            background: var(--esan-red);
+        }
+
+        .destinos-body {
+            overflow: auto;
+            padding: 14px 18px 18px;
+        }
+
+        .destinos-current,
+        .destinos-why {
+            border-radius: 8px;
+            background: #f5f5f5;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .destinos-label {
+            display: block;
+            margin-bottom: 4px;
+            color: #777;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        #destinos-current-name {
+            color: #111;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .destinos-why h3,
+        .destinos-list h3 {
+            margin: 0 0 8px;
+            color: #111;
+            font-size: 15px;
+        }
+
+        .destinos-why p {
+            margin: 0;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.48;
+        }
+
+        .destinos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .destino-card {
+            min-height: 58px;
+            padding: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            background: #fff;
+            color: #1c1c1c;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+
+        .destino-card:hover,
+        .destino-card:focus {
+            outline: none;
+            border-color: rgba(227, 23, 62, 0.55);
+            box-shadow: 0 8px 18px rgba(227, 23, 62, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .destino-card.is-active {
+            border-color: var(--esan-red);
+            background: #fde8ec;
+        }
+
+        .destino-card strong {
+            display: block;
+            font-size: 13px;
+            line-height: 1.2;
+        }
+
+        .destino-card span {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 11px;
+            line-height: 1.2;
+        }
+
+        @media (max-width: 640px) {
+            #btn-menu-2d {
+                bottom: 18px;
+                width: calc(100vw - 36px);
+                max-width: 340px;
+                padding: 13px 18px;
+            }
+
+            #destinos-panel {
+                top: auto;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                width: auto;
+                max-height: 78vh;
+                border-radius: 8px 8px 0 0;
+                transform: translateY(calc(100% + 18px));
+            }
+
+            #destinos-panel.visible {
+                transform: translateY(0);
+            }
+        }
+
     </style>
 
     <script>
@@ -369,19 +575,23 @@
 
         const nombresDestinos = {
             'fuera': 'Exterior\nESAN',
-            'entrada': 'Entrada\nPrincipal', 'jardin': 'Jardin', 'fuente': 'Fuente',
-            'capilla': 'Capilla', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
-            'voley': 'Cancha de\nVoley', 'basquet': 'Cancha de\nBasquet',
+            'entrada': 'Entrada\nPrincipal', 'jardin': 'Jardín',
             'explanada': 'Explanada\nConvention', 'eventos': 'Eventos',
-            'butacas': 'Butacas', 'biblioteca': 'Biblioteca', 'danza': 'Danza',
-            'edificioD': 'Edificio D', 'conducta': 'Lab Conducta', 'edificioA': 'Edificio A',
-            'ecoesan': 'EcoESAN', 'aula': 'Aula', 'laboratorio': 'Lab de\nComputo',
-            'datalab': 'Data Lab', 'cafeteria': 'Cafeteria', 'cafeteria_interior': 'Cafeteria\nInterior',
-            'fisica': 'Lab de\nFisica', 'quimica': 'Lab de\nQuimica',
+            'butacas': 'Butacas', 'biblioteca': 'Biblioteca',
+            'aula': 'Aula', 'fisica': 'Lab de\nFísica', 'conducta': 'Lab de\nConducta',
+            'robotica': 'Lab de\nRobótica', 'datalab': 'Data Lab', 'fablab': 'FabLab',
             'estudio_pregrado': 'Sala Estudio\nPregrado', 'estudio_mba': 'Sala Estudio\nMBA',
-            'estudio_magister': 'Sala Estudio\nMagister', 'descanso_magister': 'Sala Descanso\nMagister',
-            'robotica': 'Lab\nRobotica'
+            'cafeteria': 'Cafetería'
         };
+
+        const destinosMVP = [
+            'fuera', 'entrada', 'jardin', 'explanada',
+            'eventos', 'butacas',
+            'aula', 'biblioteca',
+            'fisica', 'conducta', 'robotica', 'datalab', 'fablab',
+            'estudio_pregrado', 'estudio_mba',
+            'cafeteria'
+        ];
 
         AFRAME.registerGeometry('rounded-rect', {
             schema: { width: { default: 1 }, height: { default: 1 }, radius: { default: 0.05 } },
@@ -1025,6 +1235,81 @@
             }
         };
 
+        const flechasMVP = {
+            'fuera': [
+                { target: 'entrada', position: '-10 2.5 -7.42', rotation: '0 0 0' }
+            ],
+            'entrada': [
+                { target: 'jardin', position: '1.42 2 8.15', rotation: '0 -155 0' },
+                { target: 'fuera', position: '-7.22 -1 -9.59', rotation: '0 0 0' }
+            ],
+            'jardin': [
+                { target: 'entrada', position: '9.12 3.1 -7.79', rotation: '0 150 0' },
+                { target: 'explanada', position: '-0.17 3.2 -12', rotation: '0 -45 0' }
+            ],
+            'explanada': [
+                { target: 'jardin', position: '1.78 -1 -11.87', rotation: '0 -20 0' },
+                { target: 'eventos', position: '8.54 -1 -8.43', rotation: '0 -60 0' },
+                { target: 'estudio_mba', position: '11.56 -1 3.21', rotation: '0 -170 0' },
+                { target: 'fisica', position: '-11.59 2 -3.10', rotation: '0 15 0' },
+                { target: 'fablab', position: '10.87 2 5.08', rotation: '0 156 0', imgSrc: '#img-flecha-derecha' }
+            ],
+            'eventos': [
+                { target: 'biblioteca', position: '1.15 -1 20', rotation: '0 50 0' },
+                { target: 'butacas', position: '20 -1 3.43', rotation: '0 110 0' },
+                { target: 'explanada', position: '16.59 -1 -11', rotation: '0 150 0' }
+            ],
+            'butacas': [
+                { target: 'eventos', position: '-8 5 25', rotation: '0 5 0' },
+                { target: 'biblioteca', position: '10.53 3.29 -4.71', rotation: '0 114 0', imgSrc: '#img-flecha-derecha' }
+            ],
+            'biblioteca': [
+                { target: 'eventos', position: '17 -1 20', rotation: '0 40 0' }
+            ],
+            'aula': [
+                { target: 'datalab', position: '-10 -1 0', rotation: '0 -90 0' }
+            ],
+            'fisica': [
+                { target: 'datalab', position: '7.02 2.8 9.72', rotation: '0 360 0', imgSrc: '#img-flecha-abajo' },
+                { target: 'explanada', position: '7.67 2.8 -9.21', rotation: '0 140 0' }
+            ],
+            'conducta': [
+                { target: 'datalab', position: '0 -1 -10', rotation: '0 0 0', imgSrc: '#img-flecha-abajo' }
+            ],
+            'robotica': [
+                { target: 'datalab', position: '-9.25 2 -7.65', rotation: '0 0 0' }
+            ],
+            'datalab': [
+                { target: 'aula', position: '10 -1 0', rotation: '0 90 0' },
+                { target: 'conducta', position: '-4.29 10 11.21', rotation: '0 0 0', imgSrc: '#img-flecha-derecha' },
+                { target: 'robotica', position: '-11.22 2 4.24', rotation: '0 0 0', imgSrc: '#img-flecha-derecha' },
+                { target: 'fisica', position: '0 -1 10', rotation: '0 180 0' }
+            ],
+            'fablab': [
+                { target: 'explanada', position: '9.27 4.41 6.22', rotation: '0 56 0', imgSrc: '#img-flecha-derecha' }
+            ],
+            'estudio_pregrado': [
+                { target: 'estudio_mba', position: '-9.54 2.8 7.27', rotation: '0 0 0' }
+            ],
+            'estudio_mba': [
+                { target: 'estudio_pregrado', position: '8.76 2.8 8.18', rotation: '0 0 0', imgSrc: '#img-flecha-abajo' },
+                { target: 'explanada', position: '8.22 2.8 -8.72', rotation: '0 137 0' },
+                { target: 'cafeteria', position: '1.14 2.8 11.94', rotation: '0 -176 0' }
+            ],
+            'cafeteria': [
+                { target: 'estudio_mba', position: '1.91 -1 -11.85', rotation: '0 0 0' },
+                { target: 'explanada', position: '10.81 -1 -5.21', rotation: '0 0 0' }
+            ]
+        };
+
+        Object.keys(escenas).forEach(function (key) {
+            if (!destinosMVP.includes(key)) delete escenas[key];
+        });
+
+        Object.keys(flechasMVP).forEach(function (key) {
+            if (escenas[key]) escenas[key].flechas = flechasMVP[key];
+        });
+
         var _isDragging = false;
         var _mousedownX = 0, _mousedownY = 0;
         document.addEventListener('mousedown', function (e) {
@@ -1234,6 +1519,7 @@
                     overlayFade.setAttribute('animation', { property: 'material.opacity', from: 1, to: 0, dur: duracionFade, easing: 'linear' });
                     refreshRaycasters();
                     _escenaActual = nombreEscena;
+                    actualizarDestinosActivos();
                     precargarAdyacentes(nombreEscena);
                 }
 
@@ -1398,7 +1684,7 @@
             menu.appendChild(panelFondo);
 
             var titulo = document.createElement('a-text');
-            titulo.setAttribute('value', 'MAPA VIRTUAL ESAN');
+            titulo.setAttribute('value', 'Mapa general');
             titulo.setAttribute('align', 'center');
             titulo.setAttribute('color', '#FFFFFF');
             titulo.setAttribute('font', 'exo2semibold');
@@ -1464,6 +1750,93 @@
             menu.appendChild(btnEnlace);
         }
 
+        function nombreDestinoPlano(key) {
+            return (nombresDestinos[key] || key).replace(/\n/g, ' ');
+        }
+
+        function resumenDestino(key) {
+            var grupos = {
+                'fuera': 'Punto de inicio',
+                'entrada': 'Transición',
+                'jardin': 'Espacio representativo',
+                'explanada': 'Espacio institucional',
+                'eventos': 'Representa actividades y espacios para eventos',
+                'butacas': 'Complementa la experiencia cultural y de eventos',
+                'aula': 'Representa la experiencia académica',
+                'biblioteca': 'Espacio importante',
+                'fisica': 'Demuestra variedad',
+                'conducta': 'Demuestra variedad',
+                'robotica': 'Demuestra innovación',
+                'datalab': 'Demuestra tecnología',
+                'fablab': 'Representa innovación y fabricación',
+                'estudio_pregrado': 'Representa al alumno',
+                'estudio_mba': 'Representa posgrado',
+                'cafeteria': 'Espacio cotidiano'
+            };
+            return grupos[key] || 'Recorrido';
+        }
+
+        function actualizarDestinosActivos() {
+            var nombreActual = nombreDestinoPlano(_escenaActual || 'fuera');
+            var actual = document.getElementById('destinos-current-name');
+            if (actual) actual.textContent = nombreActual;
+            document.querySelectorAll('.destino-card').forEach(function (btn) {
+                btn.classList.toggle('is-active', btn.getAttribute('data-target') === _escenaActual);
+            });
+        }
+
+        function construirDestinosPanel() {
+            var grid = document.getElementById('destinos-grid');
+            if (!grid || grid.children.length) return;
+
+            destinosMVP.forEach(function (key) {
+                if (!escenas[key]) return;
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'destino-card';
+                btn.setAttribute('data-target', key);
+                btn.innerHTML = '<strong>' + nombreDestinoPlano(key) + '</strong><span>' + resumenDestino(key) + '</span>';
+                btn.addEventListener('click', function () {
+                    cerrarDestinosPanel();
+                    iniciarTransicion(key, '0 0 0');
+                });
+                grid.appendChild(btn);
+            });
+            actualizarDestinosActivos();
+        }
+
+        function abrirDestinosPanel() {
+            construirDestinosPanel();
+            actualizarDestinosActivos();
+            var panel = document.getElementById('destinos-panel');
+            var backdrop = document.getElementById('destinos-backdrop');
+            var btn = document.getElementById('btn-menu-2d');
+            if (panel) {
+                panel.classList.add('visible');
+                panel.setAttribute('aria-hidden', 'false');
+            }
+            if (backdrop) backdrop.classList.add('visible');
+            if (btn) btn.innerText = 'Cerrar Mapa general';
+        }
+
+        function cerrarDestinosPanel() {
+            var panel = document.getElementById('destinos-panel');
+            var backdrop = document.getElementById('destinos-backdrop');
+            var btn = document.getElementById('btn-menu-2d');
+            if (panel) {
+                panel.classList.remove('visible');
+                panel.setAttribute('aria-hidden', 'true');
+            }
+            if (backdrop) backdrop.classList.remove('visible');
+            if (btn) btn.innerText = 'Mapa general';
+        }
+
+        function toggleDestinosPanel() {
+            var panel = document.getElementById('destinos-panel');
+            if (panel && panel.classList.contains('visible')) cerrarDestinosPanel();
+            else abrirDestinosPanel();
+        }
+
         var _menuBuilt = false;
         function toggleMenu3D() {
             if (!_menuBuilt) {
@@ -1488,13 +1861,13 @@
                     menu.setAttribute('look-at', '[camera]');
                 }
                 menu.setAttribute('visible', 'true');
-                if (btn2D) btn2D.innerText = 'Cerrar Menu de Navegacion';
+                if (btn2D) btn2D.innerText = 'Cerrar Mapa general';
                 var botonesMenu = menu.querySelectorAll('.menu-btn');
                 botonesMenu.forEach(b => b.classList.add('clickable'));
                 refreshRaycasters();
             } else {
                 menu.setAttribute('visible', 'false');
-                if (btn2D) btn2D.innerText = 'Abrir Menu de Navegacion';
+                if (btn2D) btn2D.innerText = 'Mapa general';
                 var botonesMenu = menu.querySelectorAll('.menu-btn');
                 botonesMenu.forEach(b => b.classList.remove('clickable'));
                 refreshRaycasters();
@@ -1517,6 +1890,7 @@
                     hotspotEntrada.querySelectorAll('.icono-hotspot').forEach(i => i.classList.add('clickable'));
                 }
                 _escenaActual = 'fuera';
+                actualizarDestinosActivos();
                 refreshRaycasters();
             }
 
@@ -1618,16 +1992,16 @@
         /* ── Datos para las 2D info cards ── */
         window.cardData2D = {
             'panel-info-entrada': {
-                title: 'ENTRADA PRINCIPAL ESAN',
+                title: 'Entrada Principal',
                 desc: 'Bienvenidos a una de las instituciones de educación superior en negocios más prestigiosas de América Latina.',
                 image: 'imagenes/entrada esan.jpg',
-                scene: 'ENTRADA PRINCIPAL'
+                scene: 'Entrada Principal'
             },
             'panel-info-fuera': {
-                title: 'EXTERIOR ESAN',
+                title: 'Exterior ESAN',
                 desc: 'Amplias áreas verdes y zonas de tránsito que destacan nuestra moderna arquitectura.',
                 image: 'imagenes/Fotos/fuenteF.webp',
-                scene: 'EXTERIOR ESAN'
+                scene: 'Exterior ESAN'
             }
         };
 
@@ -1782,7 +2156,33 @@
         <div class="loader-bar"><span></span></div>
     </div>
 
-    <button id="btn-menu-2d">Abrir Menu de Navegacion</button>
+    <button id="btn-menu-2d">Mapa general</button>
+
+    <div id="destinos-backdrop"></div>
+    <aside id="destinos-panel" aria-hidden="true" aria-labelledby="destinos-title">
+        <div class="destinos-header">
+            <div>
+                <p class="destinos-kicker">MVP de destinos</p>
+                <h2 id="destinos-title">Mapa ESAN</h2>
+                <p>Selecciona un punto del campus para saltar directo al recorrido 360.</p>
+            </div>
+            <button id="destinos-close" aria-label="Cerrar destinos">&#10005;</button>
+        </div>
+        <div class="destinos-body">
+            <div class="destinos-current">
+                <span class="destinos-label">Ubicación actual</span>
+                <strong id="destinos-current-name">Punto de inicio</strong>
+            </div>
+            <section class="destinos-why" aria-labelledby="destinos-why-title">
+                <h3 id="destinos-why-title">¿Por qué Mapa ESAN?</h3>
+                <p>Demuestra orientación dentro del campus: ayuda a reconocer los puntos principales, ubicarse con claridad y avanzar hacia espacios académicos, deportivos y de servicios desde una sola vista.</p>
+            </section>
+            <section class="destinos-list" aria-labelledby="destinos-list-title">
+                <h3 id="destinos-list-title">Destinos</h3>
+                <div class="destinos-grid" id="destinos-grid"></div>
+            </section>
+        </div>
+    </aside>
 
     <div id="card-backdrop"></div>
     <div id="info-card-2d">
@@ -1903,7 +2303,7 @@
             <a-entity id="panel-info-entrada" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fuenteF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="ENTRADA PRINCIPAL ESAN" color="#FFFFFF" align="center" width="7"
+                <a-text value="Entrada Principal" color="#FFFFFF" align="center" width="7"
                     position="0 1.15 0.01"></a-text>
 
                 <a-text
@@ -1965,7 +2365,7 @@
             <a-entity id="panel-info-jardin" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/arbolF.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="PINO ESAN" color="#E3173E" align="center" width="7" position="0 1.05 0.01"></a-text>
+                <a-text value="Espacio representativo" color="#E3173E" align="center" width="7" position="0 1.05 0.01"></a-text>
 
                 <a-text value="Nuestro gran emblema histórico que representa los 60 años de evolución del campus."
                     color="#333333" align="center" width="3.5" position="0 -0.1 0.01" wrap-count="35"></a-text>
@@ -2893,7 +3293,7 @@
             </a-image>
             <a-entity id="panel-info-fuera" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fuenteF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-                <a-text value="EXTERIOR ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="Exterior ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
                 <a-text
                     value="Amplias áreas verdes y zonas de tránsito que destacan nuestra moderna arquitectura."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
