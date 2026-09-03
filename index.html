@@ -1826,12 +1826,35 @@
                 ctx.rotate(rot * Math.PI / 180);
                 ctx.translate(-S / 2, -S / 2);
                 ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-                ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 34;
-                ctx.beginPath(); ctx.moveTo(19, 76); ctx.lineTo(50, 28); ctx.lineTo(81, 76); ctx.stroke();
-                ctx.strokeStyle = '#E3173E'; ctx.lineWidth = 26;
-                ctx.beginPath(); ctx.moveTo(17, 74); ctx.lineTo(50, 28); ctx.lineTo(83, 74); ctx.stroke();
-                ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 14;
-                ctx.beginPath(); ctx.moveTo(17, 74); ctx.lineTo(50, 28); ctx.lineTo(83, 74); ctx.stroke();
+
+                ctx.shadowColor = 'rgba(0,0,0,0.35)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 4;
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.moveTo(64, 8);
+                ctx.lineTo(116, 60);
+                ctx.lineTo(91, 60);
+                ctx.lineTo(91, 116);
+                ctx.lineTo(37, 116);
+                ctx.lineTo(37, 60);
+                ctx.lineTo(12, 60);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.shadowColor = 'transparent';
+                ctx.fillStyle = '#050505';
+                ctx.beginPath();
+                ctx.moveTo(64, 18);
+                ctx.lineTo(101, 55);
+                ctx.lineTo(80, 55);
+                ctx.lineTo(80, 105);
+                ctx.lineTo(48, 105);
+                ctx.lineTo(48, 55);
+                ctx.lineTo(27, 55);
+                ctx.closePath();
+                ctx.fill();
                 ctx.restore();
             }
 
@@ -1847,6 +1870,7 @@
                 var ctx = el.getContext('2d');
                 ctx.clearRect(0, 0, S, S);
                 d[1](ctx);
+                el.dataset.textureVersion = Date.now().toString();
             });
         })();
         </script>
