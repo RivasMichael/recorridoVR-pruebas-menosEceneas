@@ -748,6 +748,7 @@
         }
 
         var _lastPanelOpenAt = 0;
+        var _lastCard2DOpenAt = 0;
 
         function abrirPanelVR(panel) {
             if (!panel) return;
@@ -791,7 +792,9 @@
                     var panel = document.querySelector(data.target);
 
                     if (!panel) return;
+                    if (evt.preventDefault) evt.preventDefault();
                     evt.stopPropagation();
+                    if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
                     if (data.action !== 'close' && !isInVisibleHotspotGroup(el)) return;
                     if (data.action === 'close') cerrarPanelVR(panel);
                     else abrirPanelVR(panel);
@@ -1101,7 +1104,8 @@
 
                 function activateHotspot(evt) {
                     var now = performance.now();
-                    if (now - lastActivation < 180) return;
+                    if (now - lastActivation < 420) return true;
+                    if (document.querySelector('.panel-activo') && now - _lastPanelOpenAt < 650) return true;
 
                     var target = findHotspotTargetFromRay();
                     if (!target) return;
@@ -1540,14 +1544,9 @@
             var darkbg = document.querySelector('#hotspot-darkbg');
             if (darkbg) {
                 darkbg.addEventListener('click', function () {
+                    if (performance.now() - _lastPanelOpenAt < 650) return;
                     var panelActivo = document.querySelector('.panel-activo');
-                    if (panelActivo) {
-                        panelActivo.setAttribute('visible', 'false');
-                        panelActivo.classList.remove('panel-activo');
-                    }
-                    darkbg.setAttribute('visible', 'false');
-                    var flechas = document.querySelector('#flechas-container');
-                    if (flechas) flechas.setAttribute('visible', 'true');
+                    cerrarPanelVR(panelActivo);
                 });
             }
 
@@ -1633,6 +1632,7 @@
         };
 
         function showCard2D(title, desc, imageSrc, sceneTag) {
+            _lastCard2DOpenAt = performance.now();
             document.getElementById('ic-title').textContent = title;
             document.getElementById('ic-desc').textContent = desc;
             document.getElementById('ic-scene-tag').textContent = (sceneTag || 'ESAN').toUpperCase();
@@ -1648,6 +1648,7 @@
         }
 
         function hideCard2D() {
+            if (performance.now() - _lastCard2DOpenAt < 350) return;
             document.getElementById('info-card-2d').classList.remove('visible');
             document.getElementById('card-backdrop').classList.remove('visible');
         }
@@ -1719,7 +1720,7 @@
                     : intersectedEl && intersectedEl.closest && intersectedEl.closest('.icono-hotspot');
                 var activePanel = document.querySelector('.panel-activo');
                 if (activePanel) {
-                    if (performance.now() - _lastPanelOpenAt < 250) return;
+                    if (performance.now() - _lastPanelOpenAt < 650) return;
                     if (hotspotEl) return;
                     if (!intersectedEl || !activePanel.contains(intersectedEl)) {
                         cerrarPanelVR(activePanel);
@@ -1754,8 +1755,11 @@
             init: function () {
                 var panelId = this.data.panel.replace(/^#/, '');
                 var el = this.el;
-                el.addEventListener('click', function () {
+                el.addEventListener('click', function (evt) {
                     if (_isDragging) return;
+                    if (evt.preventDefault) evt.preventDefault();
+                    if (evt.stopPropagation) evt.stopPropagation();
+                    if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
                     var data = window.cardData2D[panelId];
                     if (data) showCard2D(data.title, data.desc, data.image, data.scene);
                 });
@@ -1844,7 +1848,7 @@
                 ctx.fill();
 
                 ctx.shadowColor = 'transparent';
-                ctx.fillStyle = '#050505';
+                ctx.fillStyle = '#E3173E';
                 ctx.beginPath();
                 ctx.moveTo(64, 18);
                 ctx.lineTo(101, 55);
