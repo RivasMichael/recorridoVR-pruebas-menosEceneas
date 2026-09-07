@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Tour ESAN 360 - Experiencia VR Premium</title>
+    <title>Esan Experience 360</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
     <script src="https://unpkg.com/aframe-troika-text/dist/aframe-troika-text.min.js"></script>
@@ -599,13 +599,13 @@
 
         const nombresDestinos = {
             'fuera': 'Exterior\nESAN',
-            'entrada': 'Entrada\nPrincipal', 'jardin': 'Jardín',
+            'entrada': 'Entrada\nPrincipal', 'jardin': 'Jardin',
             'explanada': 'Explanada\nConvention', 'eventos': 'Eventos',
             'butacas': 'Butacas', 'biblioteca': 'Biblioteca',
-            'aula': 'Aula', 'fisica': 'Lab de\nFísica', 'conducta': 'Lab de\nConducta',
-            'robotica': 'Lab de\nRobótica', 'datalab': 'Data Lab', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
+            'aula': 'Aula', 'fisica': 'Lab de\nFisica', 'conducta': 'Lab de\nConducta',
+            'robotica': 'Lab de\nRobotica', 'datalab': 'Data Lab', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
             'estudio_pregrado': 'Sala Estudio\nPregrado', 'estudio_mba': 'Sala Estudio\nMBA',
-            'cafeteria': 'Cafetería', 'cafeteria_interior': 'Cafetería\nInterior'
+            'cafeteria': 'Cafeteria', 'cafeteria_interior': 'Cafeteria\nInterior'
         };
 
         const destinosMVP = [
@@ -881,7 +881,7 @@
 
                             var badgeTxt = document.createElement('a-entity');
                             badgeTxt.setAttribute('troika-text', {
-                                value: 'ESAN 360', color: '#E3173E',
+                                value: 'Esan Experience 360', color: '#E3173E',
                                 fontSize: 0.105, maxWidth: bW - 0.12,
                                 textAlign: 'center', anchorX: 'center', anchorY: 'middle',
                                 fontWeight: 'bold'
@@ -961,6 +961,39 @@
             }
         });
 
+        AFRAME.registerComponent('menu-follow', {
+            schema: {
+                distance: { type: 'number', default: 4.5 },
+                heightOffset: { type: 'number', default: -0.1 },
+                lerp: { type: 'number', default: 0.18 }
+            },
+            init: function () {
+                this._cam = null;
+                this._targetPos = new THREE.Vector3();
+                this._camWorldPos = new THREE.Vector3();
+            },
+            tick: function () {
+                if (!this.el.object3D.visible) return;
+                if (!this._cam) {
+                    var camEl = document.querySelector('#camara-principal');
+                    if (!camEl) return;
+                    this._cam = camEl.object3D;
+                }
+
+                var direction = new THREE.Vector3(0, 0, -1);
+                direction.applyQuaternion(this._cam.getWorldQuaternion(new THREE.Quaternion()));
+                this._cam.getWorldPosition(this._camWorldPos);
+
+                this._targetPos.copy(this._camWorldPos).add(direction.multiplyScalar(this.data.distance));
+                this._targetPos.y = this._camWorldPos.y + this.data.heightOffset;
+                this.el.object3D.position.lerp(this._targetPos, this.data.lerp);
+
+                var lookAtPos = new THREE.Vector3().copy(this._camWorldPos);
+                lookAtPos.y = this.el.object3D.position.y;
+                this.el.object3D.lookAt(lookAtPos);
+            }
+        });
+
         function isInVisibleHotspotGroup(el) {
             var group = el && el.parentNode;
             while (group && !(group.classList && group.classList.contains('grupo-hotspots'))) {
@@ -985,6 +1018,7 @@
                 grupo.querySelectorAll('.hotspot-preview').forEach(function (preview) {
                     preview.setAttribute('visible', 'true');
                 });
+                sincronizarPreviewsHotspots(grupo);
             }
             if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
             if (!document.querySelector('.panel-activo') && flechas) flechas.setAttribute('visible', 'true');
@@ -1048,62 +1082,110 @@
             return '';
         }
 
-        function crearPreviewHotspot(icono, titulo) {
-            var texto = (titulo || '').trim();
-            if (!texto) return null;
-            var grupo = icono.closest && icono.closest('.grupo-hotspots');
-            if (!grupo) return null;
+        function texto3DSeguro(texto) {
+            return (texto || '')
+                .replace(/[ÁÀÂÄ]/g, 'A')
+                .replace(/[ÉÈÊË]/g, 'E')
+                .replace(/[ÍÌÎÏ]/g, 'I')
+                .replace(/[ÓÒÔÖ]/g, 'O')
+                .replace(/[ÚÙÛÜ]/g, 'U')
+                .replace(/[áàâä]/g, 'a')
+                .replace(/[éèêë]/g, 'e')
+                .replace(/[íìîï]/g, 'i')
+                .replace(/[óòôö]/g, 'o')
+                .replace(/[úùûü]/g, 'u')
+                .replace(/Ñ/g, 'N')
+                .replace(/ñ/g, 'n')
+                .replace(/[¡¿]/g, '');
+        }
 
+        function crearLabelNegro3D(titulo, className) {
+            var cleanTitle = texto3DSeguro(titulo || '').replace(/\s+/g, ' ').trim();
+            if (!cleanTitle) return null;
+
+            var width = Math.min(Math.max(cleanTitle.length * 0.105 + 0.45, 1.20), 3.20);
+            var height = cleanTitle.length > 22 ? 0.54 : 0.42;
             var label = document.createElement('a-entity');
-            label.classList.add('hotspot-preview');
-            var pos = icono.getAttribute('position') || { x: 0, y: 0, z: 0 };
-            var x = Number(pos.x || 0);
-            var y = Number(pos.y || 0) + 0.95;
-            var z = Number(pos.z || 0);
-            label.setAttribute('position', x.toFixed(2) + ' ' + y.toFixed(2) + ' ' + z.toFixed(2));
-            label.setAttribute('look-at', '[camera]');
+            label.classList.add(className || 'preview-label');
             label.setAttribute('visible', 'true');
-
-            var cleanTitle = texto.replace(/\s+/g, ' ');
-            var width = Math.min(Math.max(cleanTitle.length * 0.095 + 0.46, 1.15), 3.1);
-            var height = cleanTitle.length > 24 ? 0.54 : 0.42;
+            label.setAttribute('look-at', '[camera]');
 
             var sombra = document.createElement('a-entity');
             sombra.setAttribute('geometry', `primitive: rounded-rect; width: ${(width + 0.08).toFixed(2)}; height: ${(height + 0.08).toFixed(2)}; radius: 0.08`);
-            sombra.setAttribute('material', 'shader: flat; color: #000000; opacity: 0.32; transparent: true');
+            sombra.setAttribute('material', 'shader: flat; color: #000000; opacity: 0.32; transparent: true; depthTest: false');
             sombra.setAttribute('position', '0.04 -0.04 -0.03');
             label.appendChild(sombra);
 
             var fondo = document.createElement('a-entity');
             fondo.setAttribute('geometry', `primitive: rounded-rect; width: ${width.toFixed(2)}; height: ${height.toFixed(2)}; radius: 0.07`);
-            fondo.setAttribute('material', 'shader: flat; color: #111111; opacity: 0.9; transparent: true');
+            fondo.setAttribute('material', 'shader: flat; color: #111111; opacity: 0.9; transparent: true; depthTest: false');
             fondo.setAttribute('position', '0 0 -0.02');
             label.appendChild(fondo);
 
             var acento = document.createElement('a-plane');
-            acento.setAttribute('color', '#E3173E');
             acento.setAttribute('width', Math.min(width - 0.26, 0.74).toFixed(2));
             acento.setAttribute('height', '0.035');
-            acento.setAttribute('shader', 'flat');
+            acento.setAttribute('material', 'shader: flat; color: #E3173E; depthTest: false');
             acento.setAttribute('position', `0 ${(-height / 2 + 0.07).toFixed(3)} 0.01`);
             label.appendChild(acento);
 
-            var titleText = document.createElement('a-entity');
-            titleText.setAttribute('troika-text', {
-                value: cleanTitle,
-                color: '#FFFFFF',
-                fontSize: 0.13,
-                maxWidth: width - 0.24,
-                textAlign: 'center',
-                anchorX: 'center',
-                anchorY: 'middle',
-                fontWeight: 'bold'
-            });
+            var titleText = document.createElement('a-text');
+            titleText.setAttribute('value', cleanTitle);
+            titleText.setAttribute('color', '#FFFFFF');
+            titleText.setAttribute('align', 'center');
+            titleText.setAttribute('width', (width + 0.45).toFixed(2));
+            titleText.setAttribute('wrap-count', cleanTitle.length > 22 ? '22' : '26');
+            titleText.setAttribute('material', 'shader: flat; depthTest: false');
             titleText.setAttribute('position', '0 0.02 0.03');
             label.appendChild(titleText);
 
-            grupo.appendChild(label);
             return label;
+        }
+
+        function parseVec3Attribute(value) {
+            if (!value) return { x: 0, y: 0, z: 0 };
+            if (typeof value === 'string') {
+                var parts = value.trim().split(/\s+/).map(Number);
+                return {
+                    x: Number.isFinite(parts[0]) ? parts[0] : 0,
+                    y: Number.isFinite(parts[1]) ? parts[1] : 0,
+                    z: Number.isFinite(parts[2]) ? parts[2] : 0
+                };
+            }
+            return {
+                x: Number(value.x || 0),
+                y: Number(value.y || 0),
+                z: Number(value.z || 0)
+            };
+        }
+
+        function crearPreviewHotspot(icono, titulo) {
+            var texto = (titulo || '').trim();
+            if (!texto) return null;
+
+            var label = crearLabelNegro3D(texto, 'hotspot-preview');
+            if (!label) return null;
+            label.removeAttribute('look-at');
+            label.setAttribute('position', '0 1.25 0.08');
+            label.setAttribute('scale', '1.25 1.25 1.25');
+
+            icono._hotspotPreviewEl = label;
+            icono.appendChild(label);
+            return label;
+        }
+
+        function sincronizarPreviewsHotspots(grupo) {
+            var root = grupo || document;
+            root.querySelectorAll('.icono-hotspot').forEach(function (icono) {
+                var raw = icono.getAttribute('hotspot-info');
+                var action = raw && raw.action ? raw.action : '';
+                var target = getHotspotTarget(icono);
+                if (!target || action === 'close') return;
+                var preview = icono._hotspotPreviewEl || crearPreviewHotspot(icono, obtenerTituloPreviewHotspot(target));
+                if (preview && isInVisibleHotspotGroup(icono) && !document.querySelector('.panel-activo')) {
+                    preview.setAttribute('visible', 'true');
+                }
+            });
         }
 
         AFRAME.registerComponent('hotspot-info', {
@@ -1119,7 +1201,7 @@
 
                 function asegurarPreview() {
                     if (data.action === 'close' || previewEl) return;
-                    previewEl = crearPreviewHotspot(el, obtenerTituloPreviewHotspot(data.target));
+                    previewEl = el._hotspotPreviewEl || crearPreviewHotspot(el, obtenerTituloPreviewHotspot(data.target));
                     if (previewEl) {
                         refreshRaycasters();
                         return;
@@ -1146,7 +1228,7 @@
                 el.addEventListener('mouseenter', function () {
                     if (data.action !== 'close') {
                         el.setAttribute('scale', '0.9 0.9 0.9');
-                        if (!previewEl) previewEl = crearPreviewHotspot(el, obtenerTituloPreviewHotspot(data.target));
+                        if (!previewEl) previewEl = el._hotspotPreviewEl || crearPreviewHotspot(el, obtenerTituloPreviewHotspot(data.target));
                     } else {
                         el.setAttribute('color', '#FF5555');
                     }
@@ -1443,10 +1525,10 @@
             'cafeteria': [
                 { target: 'estudio_mba', position: '-10.92 2 4.97', rotation: '0 0 0' },
                 { target: 'explanada', position: '10.02 2 6.60', rotation: '0 0 0' },
-                { target: 'cafeteria_interior', position: '1.91 -1 -11.85', rotation: '0 0 0', label: 'Cafetería\nInterior' }
+                { target: 'cafeteria_interior', position: '1.91 -1 -11.85', rotation: '0 0 0', label: 'Cafeteria\nInterior' }
             ],
             'cafeteria_interior': [
-                { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafetería\nExterior' }
+                { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafeteria\nExterior' }
             ]
         };
 
@@ -1567,14 +1649,14 @@
                     if (target && target !== "null") iniciarTransicion(target, direccionDeseada);
                 });
                 el.addEventListener('mouseenter', function () {
-                    el.setAttribute('animation__scale', 'property: scale; to: 2.1 2.1 2.1; dur: 200; easing: easeOutQuad');
+                    el.setAttribute('scale', '1.65 1.65 1.65');
                     var etiqueta = el.querySelector('.etiqueta-flotante');
                     if (etiqueta) etiqueta.setAttribute('visible', 'true');
                 });
                 el.addEventListener('mouseleave', function () {
-                    el.setAttribute('animation__scale', 'property: scale; to: 1.8 1.8 1.8; dur: 200; easing: easeOutQuad');
+                    el.setAttribute('scale', '1.65 1.65 1.65');
                     var etiqueta = el.querySelector('.etiqueta-flotante');
-                    if (etiqueta) etiqueta.setAttribute('visible', 'false');
+                    if (etiqueta) etiqueta.setAttribute('visible', 'true');
                 });
             }
         });
@@ -1758,6 +1840,7 @@
                         hotspotActual.setAttribute('visible', 'true');
                         var iconos = hotspotActual.querySelectorAll('.icono-hotspot');
                         iconos.forEach(i => i.classList.add('clickable'));
+                        sincronizarPreviewsHotspots(hotspotActual);
                     }
 
                     overlayFade.setAttribute('animation', { property: 'material.opacity', from: 1, to: 0, dur: duracionFade, easing: 'linear' });
@@ -1835,16 +1918,16 @@
         function generarFlechas(listaFlechas) {
             var contenedor = document.querySelector('#flechas-container');
             contenedor.innerHTML = '';
+            var escalaFlecha = '1.65 1.65 1.65';
             listaFlechas.forEach(flecha => {
 
                 var wrapper = document.createElement('a-entity');
                 wrapper.setAttribute('position', flecha.position);
                 wrapper.setAttribute('animation__float', `property: position; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true; to: ${flecha.position.split(' ')[0]} ${(parseFloat(flecha.position.split(' ')[1]) + 0.22).toFixed(2)} ${flecha.position.split(' ')[2]}`);
-                wrapper.setAttribute('animation__pulse', 'property: scale; from: 0.88 0.88 0.88; to: 1.22 1.22 1.22; dir: alternate; dur: 1600; easing: easeInOutSine; loop: true');
 
                 var entidad = document.createElement('a-image');
                 entidad.setAttribute('src', flecha.imgSrc || '#img-flecha-plana');
-                entidad.setAttribute('scale', '1.8 1.8 1.8');
+                entidad.setAttribute('scale', escalaFlecha);
                 entidad.setAttribute('look-at', '[camera]');
                 entidad.setAttribute('transparent', 'true');
 
@@ -1865,53 +1948,42 @@
                     });
                 })(flecha.target);
 
-                var nombreLugar = (flecha.label || nombresDestinos[flecha.target] || flecha.target).replace(/\n/g, ' ');
-                var maxLen = nombreLugar.length;
-                var labelWidth = Math.min(Math.max(maxLen * 0.105 + 0.45, 1.20), 3.20);
-                var labelHeight = maxLen > 22 ? 0.54 : 0.42;
+                var nombreLugar = texto3DSeguro(flecha.label || nombresDestinos[flecha.target] || flecha.target).replace(/\n/g, ' ');
+                var labelWidth = Math.min(Math.max(nombreLugar.length * 0.11 + 0.55, 1.35), 3.25);
+                var labelHeight = nombreLugar.length > 22 ? 0.58 : 0.44;
 
                 var etiqueta = document.createElement('a-entity');
                 etiqueta.classList.add('etiqueta-flotante');
-                etiqueta.setAttribute('position', '0 1.08 0.08');
-                etiqueta.setAttribute('scale', '0.95 0.95 0.95');
-                etiqueta.setAttribute('visible', 'false');
+                etiqueta.setAttribute('position', '0 1.22 0.16');
+                etiqueta.setAttribute('look-at', '[camera]');
+                etiqueta.setAttribute('visible', 'true');
 
-                var sombra = document.createElement('a-entity');
-                sombra.setAttribute('geometry', `primitive: rounded-rect; width: ${(labelWidth + 0.08).toFixed(2)}; height: ${(labelHeight + 0.08).toFixed(2)}; radius: 0.09`);
-                sombra.setAttribute('material', 'shader: flat; color: #000000; opacity: 0.36; transparent: true');
-                sombra.setAttribute('position', '0.04 -0.04 -0.03');
-                etiqueta.appendChild(sombra);
+                var fondoEtiqueta = document.createElement('a-plane');
+                fondoEtiqueta.setAttribute('width', labelWidth.toFixed(2));
+                fondoEtiqueta.setAttribute('height', labelHeight.toFixed(2));
+                fondoEtiqueta.setAttribute('material', 'shader: flat; color: #111111; opacity: 0.92; transparent: true; depthTest: false; side: double');
+                fondoEtiqueta.setAttribute('position', '0 0 -0.01');
+                etiqueta.appendChild(fondoEtiqueta);
 
-                var fondo = document.createElement('a-entity');
-                fondo.setAttribute('geometry', `primitive: rounded-rect; width: ${labelWidth.toFixed(2)}; height: ${labelHeight.toFixed(2)}; radius: 0.08`);
-                fondo.setAttribute('material', 'shader: flat; color: #1E1E1E; opacity: 0.88; transparent: true');
-                fondo.setAttribute('position', '0 0 -0.01');
-                etiqueta.appendChild(fondo);
+                var acentoEtiqueta = document.createElement('a-plane');
+                acentoEtiqueta.setAttribute('width', Math.min(labelWidth - 0.28, 0.78).toFixed(2));
+                acentoEtiqueta.setAttribute('height', '0.035');
+                acentoEtiqueta.setAttribute('material', 'shader: flat; color: #E3173E; depthTest: false; side: double');
+                acentoEtiqueta.setAttribute('position', `0 ${(-labelHeight / 2 + 0.07).toFixed(3)} 0.01`);
+                etiqueta.appendChild(acentoEtiqueta);
 
-                var acento = document.createElement('a-plane');
-                acento.setAttribute('color', '#E3173E');
-                acento.setAttribute('width', Math.min(labelWidth - 0.28, 0.75).toFixed(2));
-                acento.setAttribute('height', '0.035');
-                acento.setAttribute('shader', 'flat');
-                acento.setAttribute('position', `0 ${(-labelHeight / 2 + 0.07).toFixed(3)} 0.01`);
-                etiqueta.appendChild(acento);
+                var textoEtiqueta = document.createElement('a-text');
+                textoEtiqueta.setAttribute('value', nombreLugar);
+                textoEtiqueta.setAttribute('color', '#FFFFFF');
+                textoEtiqueta.setAttribute('align', 'center');
+                textoEtiqueta.setAttribute('width', (labelWidth + 0.35).toFixed(2));
+                textoEtiqueta.setAttribute('wrap-count', nombreLugar.length > 22 ? '22' : '26');
+                textoEtiqueta.setAttribute('material', 'shader: flat; depthTest: false; side: double');
+                textoEtiqueta.setAttribute('position', '0 0.02 0.02');
+                etiqueta.appendChild(textoEtiqueta);
 
-                var texto = document.createElement('a-entity');
-                texto.setAttribute('troika-text', {
-                    value: nombreLugar,
-                    color: '#FFFFFF',
-                    fontSize: 0.135,
-                    maxWidth: labelWidth - 0.24,
-                    textAlign: 'center',
-                    anchorX: 'center',
-                    anchorY: 'middle',
-                    fontWeight: 'bold'
-                });
-                texto.setAttribute('position', '0 0.025 0.03');
-                etiqueta.appendChild(texto);
-
-                entidad.appendChild(etiqueta);
                 wrapper.appendChild(entidad);
+                wrapper.appendChild(etiqueta);
                 contenedor.appendChild(wrapper);
             });
             refreshRaycasters();
@@ -2125,6 +2197,7 @@
             document.querySelectorAll('.icono-hotspot').forEach(function (icono) {
                 icono.classList.add('clickable');
             });
+            sincronizarPreviewsHotspots(document);
 
             function revelarInicio() {
                 ocultarLoader();
@@ -2133,6 +2206,7 @@
                 if (hotspotEntrada) {
                     hotspotEntrada.setAttribute('visible', 'true');
                     hotspotEntrada.querySelectorAll('.icono-hotspot').forEach(i => i.classList.add('clickable'));
+                    sincronizarPreviewsHotspots(hotspotEntrada);
                 }
                 _escenaActual = 'fuera';
                 actualizarDestinosActivos();
@@ -2189,9 +2263,9 @@
                 var codigoGenerado = `{ target: 'DESTINO', position: '${posX} ${posY} ${posZ}', rotation: '0 ${rotY} 0' },`;
 
                 navigator.clipboard.writeText(codigoGenerado).then(function () {
-                    alert("¡Cartel capturado en tu portapapeles!\n\n" + codigoGenerado + "\n\nPegalo en tu código.");
+                    alert("Cartel capturado en tu portapapeles!\n\n" + codigoGenerado + "\n\nPegalo en tu codigo.");
                 }).catch(function () {
-                    prompt("Copia este código:", codigoGenerado);
+                    prompt("Copia este codigo:", codigoGenerado);
                 });
                 console.log("%c NUEVA COORDENADA CAPTURADA", "color: #E3173E; font-size: 16px; font-weight: bold;");
                 console.log(codigoGenerado);
@@ -2239,13 +2313,13 @@
         window.cardData2D = {
             'panel-info-entrada': {
                 title: 'Entrada Principal',
-                desc: 'Bienvenidos a una de las instituciones de educación superior en negocios más prestigiosas de América Latina.',
-                image: 'imagenes/entrada esan.jpg',
+                desc: 'Bienvenidos a una de las instituciones de educacion superior en negocios mas prestigiosas de America Latina.',
+                image: 'imagenes/Fotos/entradaPuertaF.webp',
                 scene: 'Entrada Principal'
             },
             'panel-info-fuera': {
                 title: 'Exterior ESAN',
-                desc: 'Amplias áreas verdes y zonas de tránsito que destacan nuestra moderna arquitectura.',
+                desc: 'Amplias areas verdes y zonas de transito que destacan nuestra moderna arquitectura.',
                 image: 'imagenes/Fotos/fuenteF.webp',
                 scene: 'Exterior ESAN'
             }
@@ -2397,7 +2471,7 @@
 <body>
     <div id="pantalla-carga">
         <img src="imagenes/esann.png" alt="ESAN">
-        <h1>Tour ESAN 360</h1>
+        <h1>Esan Experience 360</h1>
         <p>Iniciando realidad virtual</p>
         <div class="loader-bar"><span></span></div>
     </div>
@@ -2410,18 +2484,18 @@
             <div>
                 <p class="destinos-kicker">MVP de destinos</p>
                 <h2 id="destinos-title">Mapa ESAN</h2>
-                <p>Selecciona un punto del campus para saltar directo al recorrido 360.</p>
+                <p>Selecciona un punto del campus para saltar directo a Esan Experience 360.</p>
             </div>
             <button id="destinos-close" aria-label="Cerrar destinos">&#10005;</button>
         </div>
         <div class="destinos-body">
             <div class="destinos-current">
-                <span class="destinos-label">Ubicación actual</span>
+                <span class="destinos-label">Ubicacion actual</span>
                 <strong id="destinos-current-name">Punto de inicio</strong>
             </div>
             <section class="destinos-why" aria-labelledby="destinos-why-title">
-                <h3 id="destinos-why-title">¿Por qué Mapa ESAN?</h3>
-                <p>Demuestra orientación dentro del campus: ayuda a reconocer los puntos principales, ubicarse con claridad y avanzar hacia espacios académicos, deportivos y de servicios desde una sola vista.</p>
+                <h3 id="destinos-why-title">Por que Mapa ESAN?</h3>
+                <p>Demuestra orientacion dentro del campus: ayuda a reconocer los puntos principales, ubicarse con claridad y avanzar hacia espacios academicos, deportivos y de servicios desde una sola vista.</p>
             </section>
             <section class="destinos-list" aria-labelledby="destinos-list-title">
                 <h3 id="destinos-list-title">Destinos</h3>
@@ -2536,21 +2610,21 @@
             class="clickable"></a-entity>
 
         <a-entity id="flechas-container"></a-entity>
-        <a-entity id="menu-3d" visible="false" scale="0.85 0.85 0.85"></a-entity>
+        <a-entity id="menu-3d" visible="false" scale="0.85 0.85 0.85" menu-follow="distance: 4.5; heightOffset: -0.1; lerp: 0.22"></a-entity>
 
         <a-entity id="hotspots-entrada" class="grupo-hotspots" visible="false">
             <a-image src="#img-info-icon" position="3.70 2.20 11.35" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-entrada; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-entrada" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fuenteF.webp" data-premium="true">
+            <a-entity id="panel-info-entrada" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/entradaPuertaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
                 <a-text value="Entrada Principal" color="#FFFFFF" align="center" width="7"
                     position="0 1.15 0.01"></a-text>
 
                 <a-text
-                    value="Bienvenidos a una de las instituciones de educación superior en negocios más prestigiosas de América Latina."
+                    value="Bienvenidos a una de las instituciones de educacion superior en negocios mas prestigiosas de America Latina."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.2 0.02"
@@ -2566,10 +2640,10 @@
             <a-entity id="panel-info-RECEPCION-entrada" visible="false" smooth-follow card-style scale="1 1 1">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="RECEPCIÓN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="RECEPCION" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Tu punto central de orientación, atención inicial y bienvenida al campus universitario."
+                    value="Tu punto central de orientacion, atencion inicial y bienvenida al campus universitario."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2579,7 +2653,7 @@
             </a-entity> -->
 
 
-            <a-image src="#img-info-icon" position="-6.53 2 10.07" scale="0.8 0.8 0.8" look-at="[camera]"
+            <a-image src="#img-info-icon" position="11.49 2 3.47" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="clickable icono-hotspot"
                 hotspot-info="target: #panel-info-espera-transporte-entrada; action: toggle">
             </a-image>
@@ -2590,7 +2664,7 @@
                 <a-text value="ZONA DE ESPERA" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio práctico, ordenado y seguro para coordinar tu transporte al entrar o salir."
+                    value="Espacio practico, ordenado y seguro para coordinar tu transporte al entrar o salir."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2610,7 +2684,7 @@
 
                 <a-text value="Espacio representativo" color="#E3173E" align="center" width="7" position="0 1.05 0.01"></a-text>
 
-                <a-text value="Nuestro gran emblema histórico que representa los 60 años de evolución del campus."
+                <a-text value="Nuestro gran emblema historico que representa los 60 anos de evolucion del campus."
                     color="#333333" align="center" width="3.5" position="0 -0.1 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.7 1.1 0.02"
@@ -2631,7 +2705,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Infraestructura que optimiza la interacción entre docentes y alumnos para el análisis de casos."
+                    value="Infraestructura que optimiza la interaccion entre docentes y alumnos para el analisis de casos."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2656,7 +2730,7 @@
                 <a-text value="COMEDOR ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Menús diarios balanceados y accesibles pensados para la convivencia y el descanso estudiantil."
+                    value="Menus diarios balanceados y accesibles pensados para la convivencia y el descanso estudiantil."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2677,7 +2751,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacios académicos diseñados para conectar la teoría, la práctica y la discusión interactiva."
+                    value="Espacios academicos disenados para conectar la teoria, la practica y la discusion interactiva."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2697,7 +2771,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Área clave encargada del soporte operativo y la gestión de procesos internos del campus."
+                    value="Area clave encargada del soporte operativo y la gestion de procesos internos del campus."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2716,7 +2790,7 @@
             <a-entity id="panel-info-descanso-fuente" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/areaDescansoF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="ÁREA DE DESCANSO" color="#E3173E" align="center" width="7"
+                <a-text value="AREA DE DESCANSO" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
@@ -2741,7 +2815,7 @@
                 <a-text value="CAPILLA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio sagrado de fe, oración y recogimiento consagrado a la memoria de nuestra comunidad."
+                    value="Espacio sagrado de fe, oracion y recogimiento consagrado a la memoria de nuestra comunidad."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2767,7 +2841,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Exhibición de prototipos reales nacidos del diseño, la experimentación y la fabricación digital."
+                    value="Exhibicion de prototipos reales nacidos del diseno, la experimentacion y la fabricacion digital."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2789,7 +2863,7 @@
                 <a-text value="IMPRESORAS 3D" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Equipos FDM de alta precisión para materializar piezas y modelos funcionales capa por capa."
+                    value="Equipos FDM de alta precision para materializar piezas y modelos funcionales capa por capa."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2805,11 +2879,11 @@
             <a-entity id="panel-info-laser-fablab2" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/impresoraF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="CORTADORA LÁSER" color="#E3173E" align="center" width="7"
+                <a-text value="CORTADORA LASER" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Herramienta de alta precisión para transformar diseños digitales en piezas físicas reales."
+                    value="Herramienta de alta precision para transformar disenos digitales en piezas fisicas reales."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2825,11 +2899,11 @@
             <a-entity id="panel-info-soldadura-fablab2" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/soldaduraF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="ESTACIÓN DE SOLDADURA" color="#E3173E" align="center" width="7"
+                <a-text value="ESTACION DE SOLDADURA" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio práctico de fabricación electrónica para ensamblar circuitos y prototipos tecnológicos."
+                    value="Espacio practico de fabricacion electronica para ensamblar circuitos y prototipos tecnologicos."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2872,7 +2946,7 @@
                 <a-text value="FABLAB ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Laboratorio de innovación y prototipado donde el diseño digital se vuelve tangible."
+                    value="Laboratorio de innovacion y prototipado donde el diseno digital se vuelve tangible."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2908,11 +2982,11 @@
             <a-entity id="panel-info-graderias-voley" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/canchaVoleyF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="GRADERÍAS DEPORTIVAS" color="#E3173E" align="center" width="7"
+                <a-text value="GRADERIAS DEPORTIVAS" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio para alentar a los equipos, compartir y vivir el espíritu universitario."
+                    value="Espacio para alentar a los equipos, compartir y vivir el espiritu universitario."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2930,11 +3004,11 @@
             <a-entity id="panel-info-basquet" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/canchaVoleyF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="CANCHA DE BÁSQUET" color="#E3173E" align="center" width="7"
+                <a-text value="CANCHA DE BASQUET" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio multideportivo ideal para entrenamientos, recreación y dinámicas de integración."
+                    value="Espacio multideportivo ideal para entrenamientos, recreacion y dinamicas de integracion."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2956,7 +3030,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacios de alto nivel diseñados para potenciar la excelencia académica en maestrías y MBA."
+                    value="Espacios de alto nivel disenados para potenciar la excelencia academica en maestrias y MBA."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -2992,11 +3066,11 @@
             <a-entity id="panel-info-lab-fisica-quimica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/labFisicaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="Laboratorio de Física" color="#E3173E" align="center" width="7"
+                <a-text value="Laboratorio de Fisica" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Infraestructura científica diseñada para validar la teoría mediante la experimentación práctica."
+                    value="Infraestructura cientifica disenada para validar la teoria mediante la experimentacion practica."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3016,11 +3090,11 @@
             <a-entity id="panel-info-eventos" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/eventosF.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="ÁREA DE EVENTOS" color="#E3173E" align="center" width="7"
+                <a-text value="AREA DE EVENTOS" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="El corazón de la vida universitaria fuera del aula: ferias, lanzamientos y celebraciones."
+                    value="El corazon de la vida universitaria fuera del aula: ferias, lanzamientos y celebraciones."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3062,7 +3136,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="El lugar ideal para disfrutar en comunidad de transmisiones en vivo y eventos artísticos."
+                    value="El lugar ideal para disfrutar en comunidad de transmisiones en vivo y eventos artisticos."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3084,7 +3158,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Un entorno de silencio y concentración con un amplio acervo físico y digital de primer nivel."
+                    value="Un entorno de silencio y concentracion con un amplio acervo fisico y digital de primer nivel."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3102,10 +3176,10 @@
             <a-entity id="panel-info-danza" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/aulaDanzaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="SALÓN DE DANZA" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="SALON DE DANZA" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio artístico donde los estudiantes ensayan, crean coreografías y expresan su creatividad."
+                    value="Espacio artistico donde los estudiantes ensayan, crean coreografias y expresan su creatividad."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3124,7 +3198,7 @@
                 <a-text value="INPRO ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Nuestro grupo de improvisación teatral ideal para potenciar la comunicación, confianza y liderazgo."
+                    value="Nuestro grupo de improvisacion teatral ideal para potenciar la comunicacion, confianza y liderazgo."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3142,11 +3216,11 @@
             <a-entity id="panel-info-edificioA" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/edificioDF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="MÁQUINAS DE SNACKS" color="#E3173E" align="center" width="7"
+                <a-text value="MAQUINAS DE SNACKS" color="#E3173E" align="center" width="7"
                     position="0 1.15 0.01"></a-text>
 
                 <a-text
-                    value="Dispensadores de bebidas y bocadillos ideales para reponer energías en tus pausas."
+                    value="Dispensadores de bebidas y bocadillos ideales para reponer energias en tus pausas."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.2 0.02"
@@ -3167,7 +3241,7 @@
                 <a-text value="CAJERO BCP" color="#E3173E" align="center" width="7" position="0 1.15 0.01"></a-text>
 
                 <a-text
-                    value="Operaciones bancarias y retiros rápidos de forma segura sin salir del campus universitario."
+                    value="Operaciones bancarias y retiros rapidos de forma segura sin salir del campus universitario."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.2 0.02"
@@ -3183,10 +3257,10 @@
             <a-entity id="panel-info-libreria-edificioD" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/edificioDF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="LIBRERÍA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="LIBRERIA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Textos especializados en negocios y artículos de escritorio para complementar tu formación."
+                    value="Textos especializados en negocios y articulos de escritorio para complementar tu formacion."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3205,7 +3279,7 @@
                 <a-text value="EDIFICIO D" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Entorno integral que reúne aulas tecnológicas, áreas docentes y convivencia estudiantil."
+                    value="Entorno integral que reune aulas tecnologicas, areas docentes y convivencia estudiantil."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3225,7 +3299,7 @@
                 <a-text value="COMEDOR ESTUDIANTIL" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
-                <a-text value="Zona versátil para almorzar, descansar o reunirse a estudiar entre clases." color="#333333" align="center" width="3.5"
+                <a-text value="Zona versatil para almorzar, descansar o reunirse a estudiar entre clases." color="#333333" align="center" width="3.5"
                     position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3241,11 +3315,11 @@
             <a-entity id="panel-info-servicios-edificio-d" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/edificioDF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="SERVICIOS HIGIÉNICOS" color="#E3173E" align="center" width="7"
+                <a-text value="SERVICIOS HIGIENICOS" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Infraestructura esencial que brinda comodidad y accesibilidad en el entorno académico."
+                    value="Infraestructura esencial que brinda comodidad y accesibilidad en el entorno academico."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3268,7 +3342,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio de apoyo especializado en asesoría conductual, gestión emocional y bienestar integral."
+                    value="Espacio de apoyo especializado en asesoria conductual, gestion emocional y bienestar integral."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3305,10 +3379,10 @@
             <a-entity id="panel-info-cafeteria-ecoesan" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/comedorEstudiantilF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="CAFETERÍA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="CAFETERIA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Punto de encuentro perfecto para avanzar trabajos grupales o tomar un café."
+                    value="Punto de encuentro perfecto para avanzar trabajos grupales o tomar un cafe."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3329,7 +3403,7 @@
                 <a-text value="AULA DE CLASES" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacios tecnológicos diseñados para el aprendizaje activo, debates y casos de negocio."
+                    value="Espacios tecnologicos disenados para el aprendizaje activo, debates y casos de negocio."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3348,10 +3422,10 @@
             <a-entity id="panel-info-laboratorio" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/labComputoF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="LAB DE CÓMPUTO" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="LAB DE COMPUTO" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Equipado con PCs de alto rendimiento y software especializado en análisis de datos y simulación."
+                    value="Equipado con PCs de alto rendimiento y software especializado en analisis de datos y simulacion."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3367,11 +3441,11 @@
             <a-entity id="panel-info-docente-lab" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/labComputoF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="ESTACIÓN DEL DOCENTE" color="#E3173E" align="center" width="7"
+                <a-text value="ESTACION DEL DOCENTE" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Eje central para la gestión de recursos digitales y enseñanza práctica interactiva."
+                    value="Eje central para la gestion de recursos digitales y ensenanza practica interactiva."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3410,7 +3484,7 @@
             <a-entity id="panel-info-cafeteria" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/cafeteria.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="CAFETERÍA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="CAFETERIA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="El lugar favorito para estudiar en grupo, relajarse y disfrutar de una variada oferta."
@@ -3425,13 +3499,13 @@
 
         <a-entity id="hotspots-fuera" class="grupo-hotspots" visible="false">
             <a-image src="#img-info-icon" position="5 2.5 -8" scale="0.8 0.8 0.8" look-at="[camera]"
-                class="icono-hotspot" hotspot-info="target: #panel-info-fuera; action: toggle">
+                class="clickable icono-hotspot" hotspot-info="target: #panel-info-fuera; action: toggle">
             </a-image>
             <a-entity id="panel-info-fuera" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fuenteF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
                 <a-text value="Exterior ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Amplias áreas verdes y zonas de tránsito que destacan nuestra moderna arquitectura."
+                    value="Amplias areas verdes y zonas de transito que destacan nuestra moderna arquitectura."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-fuera; action: close">
@@ -3446,10 +3520,10 @@
             </a-image>
             <a-entity id="panel-info-fisica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/labFisicaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-                <a-text value="LABORATORIO DE FÍSICA" color="#E3173E" align="center" width="7"
+                <a-text value="LABORATORIO DE FISICA" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Equipamiento de última generación para el estudio experimental de fenómenos científicos."
+                    value="Equipamiento de ultima generacion para el estudio experimental de fenomenos cientificos."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-fisica; action: close">
@@ -3464,10 +3538,10 @@
             </a-image>
             <a-entity id="panel-info-quimica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/quimicaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-                <a-text value="LABORATORIO DE QUÍMICA" color="#E3173E" align="center" width="7"
+                <a-text value="LABORATORIO DE QUIMICA" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Entorno seguro y equipado para la práctica científica aplicada a la innovación industrial."
+                    value="Entorno seguro y equipado para la practica cientifica aplicada a la innovacion industrial."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-quimica; action: close">
@@ -3485,7 +3559,7 @@
                 <a-text value="SALA DE ESTUDIO PREGRADO" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Ambientes cómodos e iluminados ideales para preparar exámenes y proyectos en equipo."
+                    value="Ambientes comodos e iluminados ideales para preparar examenes y proyectos en equipo."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-estudio_pregrado; action: close">
@@ -3503,7 +3577,7 @@
                 <a-text value="SALA DE ESTUDIO MBA" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Espacios ejecutivos diseñados para el co-working y la discusión de casos de gestión."
+                    value="Espacios ejecutivos disenados para el co-working y la discusion de casos de gestion."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-estudio_mba; action: close">
@@ -3518,10 +3592,10 @@
             </a-image>
             <a-entity id="panel-info-estudio_magister" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/salaEstudioMagisterF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-                <a-text value="SALA DE ESTUDIO MAGÍSTER" color="#E3173E" align="center" width="7"
+                <a-text value="SALA DE ESTUDIO MAGISTER" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Entorno de alto nivel académico para la investigación y el desarrollo de tesis."
+                    value="Entorno de alto nivel academico para la investigacion y el desarrollo de tesis."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-estudio_magister; action: close">
@@ -3539,10 +3613,10 @@
             </a-image>
             <a-entity id="panel-info-cafeteria_interior" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/cafeteria_interior.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-                <a-text value="CAFETERÍA INTERIOR ESAN" color="#E3173E" align="center" width="7"
+                <a-text value="CAFETERIA INTERIOR ESAN" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Ambiente moderno con variadas opciones gastronómicas que hacen más amena la vida universitaria."
+                    value="Ambiente moderno con variadas opciones gastronomicas que hacen mas amena la vida universitaria."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-cafeteria_interior; action: close">
@@ -3552,7 +3626,7 @@
         </a-entity>
 
         <a-entity id="hotspots-robotica" class="grupo-hotspots" visible="false">
-            <a-circle src="#img-logo" radius="2" position="0 -0.5 0" rotation="-90 0 0"
+            <a-circle src="#img-logo" radius="0.85" position="0 -0.5 0" rotation="-90 0 0"
                 material="transparent: true; opacity: 1; shader: flat"></a-circle>
 
             <a-image src="#img-info-icon" position="0.13 2 -12.00" scale="0.8 0.8 0.8" look-at="[camera]"
@@ -3562,10 +3636,10 @@
             <a-entity id="panel-info-laboratorio-robotica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/robotica.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="LAB DE ROBÓTICA" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="LAB DE ROBOTICA" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio de investigación aplicada en robótica, automatización y cursos tecnológicos especializados."
+                    value="Espacio de investigacion aplicada en robotica, automatizacion y cursos tecnologicos especializados."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3580,7 +3654,7 @@
             material="color: #E3173E; opacity: 0.95; shader: flat">
             <a-entity geometry="primitive: rounded-rect; width: 4.2; height: 1.6; radius: 0.28"
                 material="color: #000000; opacity: 0.25; shader: flat" position="0.06 -0.06 -0.02"></a-entity>
-            <a-text value="¡Juega Básquet!" align="center" color="#FFFFFF" width="5.5" position="0 0.18 0.01"
+            <a-text value="Juega Basquet" align="center" color="#FFFFFF" width="5.5" position="0 0.18 0.01"
                 font="exo2semibold"></a-text>
             <a-text value="Haz clic en la pelota para lanzar" align="center" color="#FFE0E0" width="4.2"
                 position="0 -0.28 0.01" font="exo2semibold"></a-text>
@@ -3638,7 +3712,7 @@
 
         <a-entity id="rig" position="0 1.6 0" auto-height rotation="0 0 0">
             <a-image id="logo-posicion-usuario" src="#img-logo" position="0 -1.58 0" rotation="-90 0 0"
-                width="1.25" height="1.25" material="transparent: true; shader: flat; depthTest: false">
+                width="1.7" height="1.7" material="transparent: true; shader: flat; depthTest: false">
             </a-image>
 
             <a-camera id="camara-principal" camera wasd-controls-enabled="false" look-controls="reverseMouseDrag: true">
@@ -3733,7 +3807,7 @@
                 button.style.borderColor = '#00FF88';
             }
             if (!pt) {
-                dbgToast('No se detectó punto. Intenta otra zona del panorama.');
+                dbgToast('No se detecto punto. Intenta otra zona del panorama.');
                 return;
             }
             dbgCaptureArrowFromPoint(pt);
