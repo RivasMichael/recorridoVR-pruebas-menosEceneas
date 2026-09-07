@@ -974,8 +974,15 @@
             if (!panel) return;
             var fondoOscuro = document.querySelector('#hotspot-darkbg');
             var flechas = document.querySelector('#flechas-container');
+            var grupo = panel.closest && panel.closest('.grupo-hotspots');
             panel.setAttribute('visible', 'false');
             panel.classList.remove('panel-activo');
+            if (grupo) {
+                grupo.querySelectorAll('.icono-hotspot').forEach(function (icono) {
+                    icono.setAttribute('visible', 'true');
+                    icono.classList.add('clickable');
+                });
+            }
             if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
             if (!document.querySelector('.panel-activo') && flechas) flechas.setAttribute('visible', 'true');
             refreshRaycasters();
@@ -994,6 +1001,13 @@
 
             panel.setAttribute('visible', 'true');
             panel.classList.add('panel-activo');
+            var grupo = panel.closest && panel.closest('.grupo-hotspots');
+            if (grupo) {
+                grupo.querySelectorAll('.icono-hotspot').forEach(function (icono) {
+                    icono.setAttribute('visible', 'false');
+                    icono.classList.remove('clickable');
+                });
+            }
             if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
             if (flechas) flechas.setAttribute('visible', 'false');
 
@@ -1050,7 +1064,7 @@
                 imagen: '#img-entrada',
                 rotacionSky: '0 90 0',
                 flechas: [
-                    { target: 'jardin', position: '1.42 2 8.15', rotation: '0 -155 0' },
+                    { target: 'jardin', position: '-0.20 1.15 11.95', rotation: '0 0 0' },
                     { target: 'fuera', position: '-7.22 -1 -9.59', rotation: '0 0 0' }
                 ]
             },
@@ -1200,7 +1214,7 @@
             'cafeteria_interior': {
                 imagen: 'imagenes/cafeteria_interior.jpg', rotacionSky: '0 -90 0',
                 flechas: [
-                    { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', label: 'Cafeteria\nExterior' }
+                    { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafeteria\nExterior' }
                 ]
             },
             'fuera': {
@@ -1264,7 +1278,7 @@
                 { target: 'entrada', position: '-10 2.5 -7.42', rotation: '0 0 0' }
             ],
             'entrada': [
-                { target: 'jardin', position: '1.42 2 8.15', rotation: '0 -155 0' },
+                { target: 'jardin', position: '-0.20 1.15 11.95', rotation: '0 0 0' },
                 { target: 'fuera', position: '-7.22 -1 -9.59', rotation: '0 0 0' }
             ],
             'jardin': [
@@ -1294,7 +1308,7 @@
                 { target: 'datalab', position: '-10 -1 0', rotation: '0 -90 0' }
             ],
             'fisica': [
-                { target: 'datalab', position: '7.02 2.8 9.72', rotation: '0 360 0', imgSrc: '#img-flecha-abajo' },
+                { target: 'datalab', position: '11.87 2 1.74', rotation: '0 -90 0', imgSrc: '#img-flecha-izquierda' },
                 { target: 'explanada', position: '7.67 2.8 -9.21', rotation: '0 140 0' }
             ],
             'conducta': [
@@ -1304,10 +1318,10 @@
                 { target: 'datalab', position: '-9.25 2 -7.65', rotation: '0 0 0' }
             ],
             'datalab': [
-                { target: 'aula', position: '10 -1 0', rotation: '0 90 0' },
+                { target: 'aula', position: '-11.99 2 0.58', rotation: '0 90 0' },
                 { target: 'conducta', position: '-4.29 10 11.21', rotation: '0 0 0', imgSrc: '#img-flecha-derecha' },
                 { target: 'robotica', position: '-11.22 2 4.24', rotation: '0 0 0', imgSrc: '#img-flecha-derecha' },
-                { target: 'fisica', position: '0 -1 10', rotation: '0 180 0' }
+                { target: 'fisica', position: '-9.83 2 -6.88', rotation: '0 180 0' }
             ],
             'fablab': [
                 { target: 'explanada', position: '9.27 4.41 6.22', rotation: '0 56 0', imgSrc: '#img-flecha-derecha' },
@@ -1325,12 +1339,12 @@
                 { target: 'cafeteria', position: '1.14 2.8 11.94', rotation: '0 -176 0' }
             ],
             'cafeteria': [
-                { target: 'estudio_mba', position: '1.91 -1 -11.85', rotation: '0 0 0' },
-                { target: 'explanada', position: '10.81 -1 -5.21', rotation: '0 0 0' },
+                { target: 'estudio_mba', position: '-10.92 2 4.97', rotation: '0 0 0' },
+                { target: 'explanada', position: '10.02 2 6.60', rotation: '0 0 0' },
                 { target: 'cafeteria_interior', position: '1.91 -1 -11.85', rotation: '0 0 0', label: 'Cafetería\nInterior' }
             ],
             'cafeteria_interior': [
-                { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', label: 'Cafetería\nExterior' }
+                { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafetería\nExterior' }
             ]
         };
 
@@ -1375,11 +1389,77 @@
             }
         });
 
+        function hotspotVisibleCercanoAlClick(evt) {
+            var scene = document.querySelector('a-scene');
+            var camera = scene && scene.camera;
+            var canvas = scene && scene.canvas;
+            if (!scene || !camera || !canvas) return null;
+
+            var sourceEvent = evt && (evt.sourceEvent || evt.detail && (evt.detail.mouseEvent || evt.detail.sourceEvent));
+            var rect = canvas.getBoundingClientRect();
+            var clickX = sourceEvent && Number.isFinite(sourceEvent.clientX) ? sourceEvent.clientX - rect.left : null;
+            var clickY = sourceEvent && Number.isFinite(sourceEvent.clientY) ? sourceEvent.clientY - rect.top : null;
+            var tienePuntoPantalla = Number.isFinite(clickX) && Number.isFinite(clickY);
+
+            var camPos = new THREE.Vector3();
+            camera.getWorldPosition(camPos);
+            var rayDir = null;
+            if (evt && evt.detail && evt.detail.intersection && evt.detail.intersection.point) {
+                rayDir = new THREE.Vector3().copy(evt.detail.intersection.point).sub(camPos).normalize();
+            }
+
+            var closest = null;
+            var closestDistance = Infinity;
+            var hotspotPos = new THREE.Vector3();
+            var projected = new THREE.Vector3();
+
+            document.querySelectorAll('.grupo-hotspots').forEach(function (group) {
+                if (!group.object3D || !group.object3D.visible) return;
+                if (_escenaActual && group.id !== 'hotspots-' + _escenaActual) return;
+                group.querySelectorAll('.icono-hotspot').forEach(function (icono) {
+                    if (!icono.object3D || icono.getAttribute('visible') === false || icono.getAttribute('visible') === 'false') return;
+                    icono.object3D.getWorldPosition(hotspotPos);
+
+                    if (tienePuntoPantalla) {
+                        projected.copy(hotspotPos).project(camera);
+                        if (projected.z > 1 || projected.x < -1 || projected.x > 1 || projected.y < -1 || projected.y > 1) return;
+                        var screenX = (projected.x + 1) / 2 * rect.width;
+                        var screenY = (-projected.y + 1) / 2 * rect.height;
+                        var dx = screenX - clickX;
+                        var dy = screenY - clickY;
+                        var distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < closestDistance && distance <= 86) {
+                            closestDistance = distance;
+                            closest = icono;
+                        }
+                    } else if (rayDir) {
+                        var hotspotDir = new THREE.Vector3().copy(hotspotPos).sub(camPos).normalize();
+                        var angle = rayDir.angleTo(hotspotDir);
+                        if (angle < closestDistance && angle <= 0.085) {
+                            closestDistance = angle;
+                            closest = icono;
+                        }
+                    }
+                });
+            });
+
+            return closest;
+        }
+
         AFRAME.registerComponent('tour-logic', {
             init: function () {
                 var el = this.el;
                 el.addEventListener('click', function (evt) {
                     if (_isDragging) return;
+                    var hotspotCercano = hotspotVisibleCercanoAlClick(evt);
+                    if (hotspotCercano) {
+                        var panelTarget = getHotspotTarget(hotspotCercano);
+                        if (panelTarget) abrirPanelVR(document.querySelector(panelTarget));
+                        if (evt.preventDefault) evt.preventDefault();
+                        if (evt.stopPropagation) evt.stopPropagation();
+                        if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
+                        return;
+                    }
                     var target = el.getAttribute('data-target');
                     var direccionDeseada = el.getAttribute('data-mirar');
                     if (target && target !== "null") iniciarTransicion(target, direccionDeseada);
@@ -1667,7 +1747,7 @@
                 entidad.setAttribute('transparent', 'true');
 
                 entidad.setAttribute('data-target', flecha.target);
-                entidad.setAttribute('class', 'clickable');
+                entidad.setAttribute('class', 'clickable flecha-tour');
                 if (flecha.mirarAlLlegar) {
                     entidad.setAttribute('data-mirar', flecha.mirarAlLlegar);
                 }
@@ -2357,11 +2437,8 @@
         <a-entity id="menu-3d" visible="false" scale="0.85 0.85 0.85"></a-entity>
 
         <a-entity id="hotspots-entrada" class="grupo-hotspots" visible="false">
-            <a-circle src="#img-logo" radius="2" position="0 -0.5 0" rotation="-90 0 0"
-                material="transparent: true; opacity: 1; shader: flat"></a-circle>
-
-            <a-image src="#img-info-icon" position="0.17 2 12.00" scale="0.8 0.8 0.8" look-at="[camera]"
-                class="icono-hotspot" hotspot-info="target: #panel-info-entrada; action: toggle">
+            <a-image src="#img-info-icon" position="3.70 2.20 11.35" scale="0.8 0.8 0.8" look-at="[camera]"
+                class="clickable icono-hotspot" hotspot-info="target: #panel-info-entrada; action: toggle">
             </a-image>
 
             <a-entity id="panel-info-entrada" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fuenteF.webp" data-premium="true">
@@ -2439,28 +2516,6 @@
                     <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
                 </a-plane>
             </a-entity>
-
-            <a-image src="#img-info-icon" position="6.09 5.00 9.99" scale="0.8 0.8 0.8" look-at="[camera]"
-                class="clickable icono-hotspot" hotspot-info="target: #panel-info-jardin2; action: toggle">
-            </a-image>
-
-            <a-entity id="panel-info-jardin2" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/arbolF.jpg" data-premium="true">
-                <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-
-                <a-text value="CAJA Y PAGOS ESAN" color="#E3173E" align="center" width="7"
-                    position="0 1.15 0.01"></a-text>
-
-                <a-text
-                    value="Área presencial para trámites administrativos, pago de pensiones y matrículas con atención rápida."
-                    color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
-
-                <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.2 0.02"
-                    hotspot-info="target: #panel-info-jardin2; action: close">
-                    <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
-                </a-plane>
-            </a-entity>
-
-
 
             <a-image src="#img-info-icon" position="2.77 3.20 -10.93" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="clickable icono-hotspot"
@@ -2603,7 +2658,7 @@
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-proyectos-fablab; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-proyectos-fablab" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fabLabF.webp" data-premium="true">
+            <a-entity id="panel-info-proyectos-fablab" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/trabajosFabF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
                 <a-text value="PROYECTOS FABLAB" color="#E3173E" align="center" width="7"
@@ -2618,71 +2673,6 @@
                     <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
                 </a-plane>
             </a-entity>
-
-            <a-image src="#img-info-icon" position="-6.78 3.68 9.19" scale="0.8 0.8 0.8" look-at="[camera]"
-                class="clickable icono-hotspot" hotspot-info="target: #panel-info-casilleros-fablab; action: toggle">
-            </a-image>
-
-            <a-entity id="panel-info-casilleros-fablab" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fabLabF.webp" data-premium="true">
-                <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-
-                <a-text value="CASILLEROS DE APOYO" color="#E3173E" align="center" width="7"
-                    position="0 1.25 0.01"></a-text>
-
-                <a-text
-                    value="Almacenamiento seguro y organizado para herramientas y proyectos estudiantiles en desarrollo."
-                    color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
-
-                <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
-                    hotspot-info="target: #panel-info-casilleros-fablab; action: close">
-                    <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
-                </a-plane>
-            </a-entity>
-
-
-
-
-
-            <a-image src="#img-info-icon" position="-0.92 2.99 11.58" scale="0.8 0.8 0.8" look-at="[camera]"
-                class="clickable icono-hotspot" hotspot-info="target: #panel-info-personal-fablab; action: toggle">
-            </a-image>
-
-            <a-entity id="panel-info-personal-fablab" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fabLabF.webp" data-premium="true">
-                <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-
-                <a-text value="ESPACIO DEL PERSONAL" color="#E3173E" align="center" width="7"
-                    position="0 1.25 0.01"></a-text>
-
-                <a-text
-                    value="Área técnica encargada de la coordinación, soporte y gestión de recursos del laboratorio."
-                    color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
-
-                <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
-                    hotspot-info="target: #panel-info-personal-fablab; action: close">
-                    <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
-                </a-plane>
-            </a-entity>
-
-            <a-image src="#img-info-icon" position="5.84 2.78 10.10" scale="0.8 0.8 0.8" look-at="[camera]"
-                class="clickable icono-hotspot" hotspot-info="target: #panel-info-personal2-fablab; action: toggle">
-            </a-image>
-
-            <a-entity id="panel-info-personal2-fablab" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fabLabF.webp" data-premium="true">
-                <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-
-                <a-text value="ESPACIO DEL PERSONAL" color="#E3173E" align="center" width="7"
-                    position="0 1.25 0.01"></a-text>
-
-                <a-text
-                    value="Área técnica encargada de la coordinación, soporte y gestión de recursos del laboratorio."
-                    color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
-
-                <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
-                    hotspot-info="target: #panel-info-personal2-fablab; action: close">
-                    <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
-                </a-plane>
-            </a-entity>
-
 
         </a-entity>
 
@@ -2730,7 +2720,7 @@
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-soldadura-fablab2; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-soldadura-fablab2" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fabLabF.webp" data-premium="true">
+            <a-entity id="panel-info-soldadura-fablab2" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/soldaduraF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
                 <a-text value="ESTACIÓN DE SOLDADURA" color="#E3173E" align="center" width="7"
@@ -2742,26 +2732,6 @@
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-soldadura-fablab2; action: close">
-                    <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
-                </a-plane>
-            </a-entity>
-
-            <a-image src="#img-info-icon" position="10.62 0.65 5.56" scale="0.8 0.8 0.8" look-at="[camera]"
-                class="clickable icono-hotspot" hotspot-info="target: #panel-info-control-fablab2; action: toggle">
-            </a-image>
-
-            <a-entity id="panel-info-control-fablab2" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fabLabF.webp" data-premium="true">
-                <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-
-                <a-text value="ESTACIÓN DE CONTROL" color="#E3173E" align="center" width="7"
-                    position="0 1.25 0.01"></a-text>
-
-                <a-text
-                    value="Punto operativo desde donde se configuran y supervisan las máquinas de fabricación digital."
-                    color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
-
-                <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
-                    hotspot-info="target: #panel-info-control-fablab2; action: close">
                     <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
                 </a-plane>
             </a-entity>
@@ -2877,7 +2847,7 @@
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-explanada; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-explanada" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/auditorioPostgradoF.webp" data-premium="true">
+            <a-entity id="panel-info-explanada" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/postgradoF.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
                 <a-text value="AULAS POSTGRADO" color="#E3173E" align="center" width="7"
@@ -2920,7 +2890,7 @@
             <a-entity id="panel-info-lab-fisica-quimica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/labFisicaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="LABORATORIOS DE FÍSICA Y QUÍMICA" color="#E3173E" align="center" width="7"
+                <a-text value="Laboratorio de Física" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
@@ -3189,7 +3159,7 @@
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-conducta; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-conducta" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/aulasF.webp" data-premium="true">
+            <a-entity id="panel-info-conducta" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/conductaF.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
                 <a-text value="LAB DE CONDUCTA" color="#E3173E" align="center" width="7"
@@ -3331,11 +3301,11 @@
         </a-entity>
 
         <a-entity id="hotspots-cafeteria" class="grupo-hotspots" visible="false">
-            <a-image src="#img-info-icon" position="0.54 2 -11.99" scale="0.8 0.8 0.8" look-at="[camera]"
+            <a-image src="#img-info-icon" position="0.54 2.80 -11.99" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-cafeteria; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-cafeteria" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/comedorEstudiantilF.webp" data-premium="true">
+            <a-entity id="panel-info-cafeteria" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/cafeteria.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
                 <a-text value="CAFETERÍA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
@@ -3426,7 +3396,7 @@
             <a-image src="#img-info-icon" position="5 2.5 -8" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="icono-hotspot" hotspot-info="target: #panel-info-estudio_mba; action: toggle">
             </a-image>
-            <a-entity id="panel-info-estudio_mba" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/aulasEjecutivasF.jpg" data-premium="true">
+            <a-entity id="panel-info-estudio_mba" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/salas%20de%20estudio%20mba.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
                 <a-text value="SALA DE ESTUDIO MBA" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
@@ -3465,7 +3435,7 @@
             <a-image src="#img-info-icon" position="5 2.5 -8" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="icono-hotspot" hotspot-info="target: #panel-info-cafeteria_interior; action: toggle">
             </a-image>
-            <a-entity id="panel-info-cafeteria_interior" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/comedorEstudiantilF.webp" data-premium="true">
+            <a-entity id="panel-info-cafeteria_interior" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/cafeteria_interior.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
                 <a-text value="CAFETERÍA INTERIOR ESAN" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
@@ -3480,9 +3450,6 @@
         </a-entity>
 
         <a-entity id="hotspots-robotica" class="grupo-hotspots" visible="false">
-            <a-circle src="#img-logo" radius="2" position="0 -0.5 0" rotation="-90 0 0"
-                material="transparent: true; opacity: 1; shader: flat"></a-circle>
-
             <a-image src="#img-info-icon" position="0.13 2 -12.00" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-laboratorio-robotica; action: toggle">
             </a-image>
@@ -3565,10 +3532,9 @@
         </a-entity>
 
         <a-entity id="rig" position="0 1.6 0" auto-height rotation="0 0 0">
-            <a-entity rotate-with-camera position="0 -2.1 0">
-                <a-circle src="#img-logo" radius="1.5" position="0 0 0" rotation="-90 0 0"
-                    material="transparent: true; opacity: 1" shader="flat"></a-circle>
-            </a-entity>
+            <a-image id="logo-posicion-usuario" src="#img-logo" position="0 -1.58 0" rotation="-90 0 0"
+                width="1.25" height="1.25" material="transparent: true; shader: flat; depthTest: false">
+            </a-image>
 
             <a-camera id="camara-principal" camera wasd-controls-enabled="false" look-controls="reverseMouseDrag: true">
                 <!-- Cursor para navegador web (desktop). En VR no aplica porque no hay mouse. -->
@@ -3578,10 +3544,6 @@
 
                 <a-entity id="overlay-fade" geometry="primitive: sphere; radius: 0.1"
                     material="color: #000; transparent: true; opacity: 0; side: back" position="0 0 0"></a-entity>
-
-                <a-entity geometry="primitive: ring; radiusInner: 0.015; radiusOuter: 0.025"
-                    material="color: #00BFFF; shader: flat; opacity: 0.8" position="0 0 -1" raycaster="enabled: false">
-                </a-entity>
             </a-camera>
 
             <a-entity laser-controls="hand: right" cursor="rayOrigin: entity; fuse: false"
