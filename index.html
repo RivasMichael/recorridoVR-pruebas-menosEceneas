@@ -3450,11 +3450,14 @@
         </a-entity>
 
         <a-entity id="hotspots-robotica" class="grupo-hotspots" visible="false">
+            <a-circle src="#img-logo" radius="2" position="0 -0.5 0" rotation="-90 0 0"
+                material="transparent: true; opacity: 1; shader: flat"></a-circle>
+
             <a-image src="#img-info-icon" position="0.13 2 -12.00" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-laboratorio-robotica; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-laboratorio-robotica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/labComputoF.webp" data-premium="true">
+            <a-entity id="panel-info-laboratorio-robotica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/robotica.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
                 <a-text value="LAB DE ROBÓTICA" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
