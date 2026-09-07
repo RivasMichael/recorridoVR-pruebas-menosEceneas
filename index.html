@@ -982,6 +982,9 @@
                     icono.setAttribute('visible', 'true');
                     icono.classList.add('clickable');
                 });
+                grupo.querySelectorAll('.hotspot-preview').forEach(function (preview) {
+                    preview.setAttribute('visible', 'true');
+                });
             }
             if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
             if (!document.querySelector('.panel-activo') && flechas) flechas.setAttribute('visible', 'true');
@@ -1006,6 +1009,9 @@
                 grupo.querySelectorAll('.icono-hotspot').forEach(function (icono) {
                     icono.setAttribute('visible', 'false');
                     icono.classList.remove('clickable');
+                });
+                grupo.querySelectorAll('.hotspot-preview').forEach(function (preview) {
+                    preview.setAttribute('visible', 'false');
                 });
             }
             if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
@@ -1045,10 +1051,17 @@
         function crearPreviewHotspot(icono, titulo) {
             var texto = (titulo || '').trim();
             if (!texto) return null;
+            var grupo = icono.closest && icono.closest('.grupo-hotspots');
+            if (!grupo) return null;
 
             var label = document.createElement('a-entity');
             label.classList.add('hotspot-preview');
-            label.setAttribute('position', '0 0.95 0.08');
+            var pos = icono.getAttribute('position') || { x: 0, y: 0, z: 0 };
+            var x = Number(pos.x || 0);
+            var y = Number(pos.y || 0) + 0.95;
+            var z = Number(pos.z || 0);
+            label.setAttribute('position', x.toFixed(2) + ' ' + y.toFixed(2) + ' ' + z.toFixed(2));
+            label.setAttribute('look-at', '[camera]');
             label.setAttribute('visible', 'true');
 
             var cleanTitle = texto.replace(/\s+/g, ' ');
@@ -1089,7 +1102,7 @@
             titleText.setAttribute('position', '0 0.02 0.03');
             label.appendChild(titleText);
 
-            icono.appendChild(label);
+            grupo.appendChild(label);
             return label;
         }
 
