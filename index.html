@@ -1027,6 +1027,72 @@
             refreshRaycasters();
         }
 
+        function obtenerTituloPreviewHotspot(targetSelector) {
+            var panel = document.querySelector(targetSelector);
+            if (!panel) return '';
+            var texts = panel.querySelectorAll('a-text');
+            for (var i = 0; i < texts.length; i++) {
+                var textEl = texts[i];
+                if (textEl.closest && textEl.closest('.close-btn')) continue;
+                var title = textEl.getAttribute('value');
+                if (typeof title !== 'string') continue;
+                title = title.trim();
+                if (title && title.toUpperCase() !== 'X') return title;
+            }
+            return '';
+        }
+
+        function crearPreviewHotspot(icono, titulo) {
+            var texto = (titulo || '').trim();
+            if (!texto) return null;
+
+            var label = document.createElement('a-entity');
+            label.classList.add('hotspot-preview');
+            label.setAttribute('position', '0 0.95 0.08');
+            label.setAttribute('visible', 'true');
+
+            var cleanTitle = texto.replace(/\s+/g, ' ');
+            var width = Math.min(Math.max(cleanTitle.length * 0.095 + 0.46, 1.15), 3.1);
+            var height = cleanTitle.length > 24 ? 0.54 : 0.42;
+
+            var sombra = document.createElement('a-entity');
+            sombra.setAttribute('geometry', `primitive: rounded-rect; width: ${(width + 0.08).toFixed(2)}; height: ${(height + 0.08).toFixed(2)}; radius: 0.08`);
+            sombra.setAttribute('material', 'shader: flat; color: #000000; opacity: 0.32; transparent: true');
+            sombra.setAttribute('position', '0.04 -0.04 -0.03');
+            label.appendChild(sombra);
+
+            var fondo = document.createElement('a-entity');
+            fondo.setAttribute('geometry', `primitive: rounded-rect; width: ${width.toFixed(2)}; height: ${height.toFixed(2)}; radius: 0.07`);
+            fondo.setAttribute('material', 'shader: flat; color: #111111; opacity: 0.9; transparent: true');
+            fondo.setAttribute('position', '0 0 -0.02');
+            label.appendChild(fondo);
+
+            var acento = document.createElement('a-plane');
+            acento.setAttribute('color', '#E3173E');
+            acento.setAttribute('width', Math.min(width - 0.26, 0.74).toFixed(2));
+            acento.setAttribute('height', '0.035');
+            acento.setAttribute('shader', 'flat');
+            acento.setAttribute('position', `0 ${(-height / 2 + 0.07).toFixed(3)} 0.01`);
+            label.appendChild(acento);
+
+            var titleText = document.createElement('a-entity');
+            titleText.setAttribute('troika-text', {
+                value: cleanTitle,
+                color: '#FFFFFF',
+                fontSize: 0.13,
+                maxWidth: width - 0.24,
+                textAlign: 'center',
+                anchorX: 'center',
+                anchorY: 'middle',
+                fontWeight: 'bold'
+            });
+            titleText.setAttribute('position', '0 0.02 0.03');
+            label.appendChild(titleText);
+
+            icono.appendChild(label);
+            return label;
+        }
+
         AFRAME.registerComponent('hotspot-info', {
             schema: {
                 target: { type: 'string' },
@@ -1035,6 +1101,21 @@
             init: function () {
                 var el = this.el;
                 var data = this.data;
+                var previewEl = null;
+                var previewAttempts = 0;
+
+                function asegurarPreview() {
+                    if (data.action === 'close' || previewEl) return;
+                    previewEl = crearPreviewHotspot(el, obtenerTituloPreviewHotspot(data.target));
+                    if (previewEl) {
+                        refreshRaycasters();
+                        return;
+                    }
+                    previewAttempts++;
+                    if (previewAttempts < 60) requestAnimationFrame(asegurarPreview);
+                }
+
+                requestAnimationFrame(asegurarPreview);
 
                 el.addEventListener('click', function (evt) {
                     var panel = document.querySelector(data.target);
@@ -1044,17 +1125,25 @@
                     evt.stopPropagation();
                     if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
                     if (data.action !== 'close' && !isInVisibleHotspotGroup(el)) return;
+                    if (previewEl) previewEl.setAttribute('visible', 'false');
                     if (data.action === 'close') cerrarPanelVR(panel);
                     else abrirPanelVR(panel);
                 });
 
                 el.addEventListener('mouseenter', function () {
-                    if (data.action !== 'close') el.setAttribute('scale', '0.9 0.9 0.9');
-                    else el.setAttribute('color', '#FF5555');
+                    if (data.action !== 'close') {
+                        el.setAttribute('scale', '0.9 0.9 0.9');
+                        if (!previewEl) previewEl = crearPreviewHotspot(el, obtenerTituloPreviewHotspot(data.target));
+                    } else {
+                        el.setAttribute('color', '#FF5555');
+                    }
                 });
                 el.addEventListener('mouseleave', function () {
-                    if (data.action !== 'close') el.setAttribute('scale', '0.8 0.8 0.8');
-                    else el.setAttribute('color', '#FF0000');
+                    if (data.action !== 'close') {
+                        el.setAttribute('scale', '0.8 0.8 0.8');
+                    } else {
+                        el.setAttribute('color', '#FF0000');
+                    }
                 });
             }
         });
