@@ -1070,6 +1070,11 @@
         function obtenerTituloPreviewHotspot(targetSelector) {
             var panel = document.querySelector(targetSelector);
             if (!panel) return '';
+
+            var panelId = panel.id || targetSelector.replace(/^#/, '');
+            var cardData = window.cardData2D && window.cardData2D[panelId];
+            if (cardData && cardData.title) return cardData.title;
+
             var texts = panel.querySelectorAll('a-text');
             for (var i = 0; i < texts.length; i++) {
                 var textEl = texts[i];
@@ -1078,6 +1083,15 @@
                 if (typeof title !== 'string') continue;
                 title = title.trim();
                 if (title && title.toUpperCase() !== 'X') return title;
+            }
+
+            var troikaTexts = panel.querySelectorAll('[troika-text]');
+            for (var j = 0; j < troikaTexts.length; j++) {
+                var troikaEl = troikaTexts[j];
+                if (troikaEl.closest && troikaEl.closest('.close-btn')) continue;
+                var troikaData = troikaEl.getAttribute('troika-text');
+                var troikaTitle = troikaData && troikaData.value ? String(troikaData.value).trim() : '';
+                if (troikaTitle && troikaTitle.toUpperCase() !== 'X') return troikaTitle;
             }
             return '';
         }
@@ -1129,13 +1143,17 @@
             acento.setAttribute('position', `0 ${(-height / 2 + 0.07).toFixed(3)} 0.01`);
             label.appendChild(acento);
 
-            var titleText = document.createElement('a-text');
-            titleText.setAttribute('value', cleanTitle);
-            titleText.setAttribute('color', '#FFFFFF');
-            titleText.setAttribute('align', 'center');
-            titleText.setAttribute('width', (width + 0.45).toFixed(2));
-            titleText.setAttribute('wrap-count', cleanTitle.length > 22 ? '22' : '26');
-            titleText.setAttribute('material', 'shader: flat; depthTest: false');
+            var titleText = document.createElement('a-entity');
+            titleText.setAttribute('troika-text', {
+                value: cleanTitle,
+                color: '#FFFFFF',
+                fontSize: cleanTitle.length > 22 ? 0.16 : 0.18,
+                maxWidth: width - 0.24,
+                textAlign: 'center',
+                anchorX: 'center',
+                anchorY: 'middle',
+                fontWeight: 'bold'
+            });
             titleText.setAttribute('position', '0 0.02 0.03');
             label.appendChild(titleText);
 
