@@ -1990,13 +1990,17 @@
                 acentoEtiqueta.setAttribute('position', `0 ${(-labelHeight / 2 + 0.07).toFixed(3)} 0.01`);
                 etiqueta.appendChild(acentoEtiqueta);
 
-                var textoEtiqueta = document.createElement('a-text');
-                textoEtiqueta.setAttribute('value', nombreLugar);
-                textoEtiqueta.setAttribute('color', '#FFFFFF');
-                textoEtiqueta.setAttribute('align', 'center');
-                textoEtiqueta.setAttribute('width', (labelWidth + 0.35).toFixed(2));
-                textoEtiqueta.setAttribute('wrap-count', nombreLugar.length > 22 ? '22' : '26');
-                textoEtiqueta.setAttribute('material', 'shader: flat; depthTest: false; side: double');
+                var textoEtiqueta = document.createElement('a-entity');
+                textoEtiqueta.setAttribute('troika-text', {
+                    value: nombreLugar,
+                    color: '#FFFFFF',
+                    fontSize: nombreLugar.length > 22 ? 0.16 : 0.18,
+                    maxWidth: labelWidth - 0.24,
+                    textAlign: 'center',
+                    anchorX: 'center',
+                    anchorY: 'middle',
+                    fontWeight: 'bold'
+                });
                 textoEtiqueta.setAttribute('position', '0 0.02 0.02');
                 etiqueta.appendChild(textoEtiqueta);
 
