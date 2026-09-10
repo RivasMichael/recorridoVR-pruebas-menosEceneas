@@ -1261,6 +1261,136 @@
             }
         });
 
+        AFRAME.registerComponent('youtube-link', {
+            schema: {
+                url: { type: 'string' }
+            },
+            init: function () {
+                var el = this.el;
+                var url = this.data.url;
+
+                el.addEventListener('click', function (evt) {
+                    if (_isDragging) return;
+                    if (evt.preventDefault) evt.preventDefault();
+                    if (evt.stopPropagation) evt.stopPropagation();
+                    if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
+                    window.open(url, '_blank');
+                });
+
+                el.addEventListener('mouseenter', function () {
+                    el.setAttribute('scale', '1.08 1.08 1.08');
+                });
+
+                el.addEventListener('mouseleave', function () {
+                    el.setAttribute('scale', '1 1 1');
+                });
+            }
+        });
+
+        AFRAME.registerComponent('local-video-toggle', {
+            schema: {
+                video: { type: 'string' },
+                playButton: { type: 'string' },
+                label: { type: 'string' }
+            },
+            init: function () {
+                var el = this.el;
+                var data = this.data;
+                var video = document.querySelector(data.video);
+                var lastToggleTime = 0;
+
+                function getPlayButton() {
+                    return data.playButton ? document.querySelector(data.playButton) : null;
+                }
+
+                function getLabel() {
+                    return data.label ? document.querySelector(data.label) : null;
+                }
+
+                function setPlayingState(isPlaying) {
+                    var playButton = getPlayButton();
+                    var label = getLabel();
+
+                    if (playButton) playButton.setAttribute('visible', isPlaying ? 'false' : 'true');
+                    if (label) {
+                        label.setAttribute('troika-text', 'value', isPlaying ? 'Pausar video' : 'Reproducir video');
+                    }
+                }
+
+                function toggleVideo(evt) {
+                    var now = Date.now();
+                    if (now - lastToggleTime < 250) return;
+                    lastToggleTime = now;
+
+                    if (!video) video = document.querySelector(data.video);
+                    if (!video) return;
+                    if (evt && evt.preventDefault) evt.preventDefault();
+                    if (evt && evt.stopPropagation) evt.stopPropagation();
+                    if (evt && evt.stopImmediatePropagation) evt.stopImmediatePropagation();
+
+                    if (video.paused) {
+                        video.muted = true;
+                        if (video.readyState === 0) video.load();
+                        var playAttempt = video.play();
+                        if (playAttempt && playAttempt.catch) {
+                            playAttempt.catch(function () {
+                                video.muted = true;
+                                video.play().catch(function () {});
+                            });
+                        }
+                    } else {
+                        video.pause();
+                    }
+                }
+
+                el.addEventListener('click', toggleVideo);
+                el.addEventListener('mouseup', toggleVideo);
+                el.addEventListener('pointerup', toggleVideo);
+                el.addEventListener('touchend', toggleVideo);
+                el.addEventListener('triggerdown', toggleVideo);
+                el.addEventListener('gripdown', toggleVideo);
+                if (video) {
+                    video.addEventListener('play', function () { setPlayingState(true); });
+                    video.addEventListener('pause', function () { setPlayingState(false); });
+                    video.addEventListener('ended', function () { setPlayingState(false); });
+                    setPlayingState(!video.paused);
+                }
+            }
+        });
+
+        function actualizarEstadoVideoRobotica(isPlaying) {
+            var playButton = document.querySelector('#video-robotica-play');
+            var label = document.querySelector('#video-robotica-label');
+
+            if (playButton) playButton.setAttribute('visible', isPlaying ? 'false' : 'true');
+            if (label) {
+                label.setAttribute('troika-text', 'value', isPlaying ? 'Pausar video' : 'Reproducir video');
+            }
+        }
+
+        function reproducirVideoRobotica() {
+            var video = document.querySelector('#video-robot-bailando');
+            if (!video) return;
+
+            video.muted = true;
+            video.playsInline = true;
+            if (video.readyState === 0) video.load();
+
+            var playAttempt = video.play();
+            if (playAttempt && playAttempt.catch) {
+                playAttempt.catch(function () {
+                    actualizarEstadoVideoRobotica(false);
+                });
+            }
+        }
+
+        function pausarVideoRobotica() {
+            var video = document.querySelector('#video-robot-bailando');
+            if (!video) return;
+            video.pause();
+            actualizarEstadoVideoRobotica(false);
+        }
+
         const escenas = {
             'entrada': {
                 imagen: '#img-entrada',
@@ -1814,6 +1944,7 @@
             contenedorFlechas.setAttribute('visible', 'false');
             btnLanzarMinijuego.setAttribute('visible', 'false');
             btnLanzarMinijuego.classList.remove('clickable');
+            if (nombreEscena !== 'robotica') pausarVideoRobotica();
 
             if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
 
@@ -1860,6 +1991,7 @@
                         iconos.forEach(i => i.classList.add('clickable'));
                         sincronizarPreviewsHotspots(hotspotActual);
                     }
+                    if (nombreEscena === 'robotica') reproducirVideoRobotica();
 
                     overlayFade.setAttribute('animation', { property: 'material.opacity', from: 1, to: 0, dur: duracionFade, easing: 'linear' });
                     refreshRaycasters();
@@ -2546,6 +2678,7 @@
         <a-assets timeout="10000">
             <img id="img-entrada" src="imagenes/entrada esan.jpg">
             <img id="img-logo" src="imagenes/esann.png">
+            <video id="video-robot-bailando" src="videos/robotBailando.mp4" preload="auto" autoplay playsinline webkit-playsinline loop muted></video>
             <canvas id="img-flecha-plana" width="128" height="128"></canvas>
             <canvas id="img-info-icon" width="128" height="128"></canvas>
             <canvas id="img-flecha-derecha" width="128" height="128"></canvas>
@@ -3100,7 +3233,6 @@
                     <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
                 </a-plane>
             </a-entity>
-
 
         </a-entity>
 
@@ -3668,6 +3800,28 @@
                     hotspot-info="target: #panel-info-laboratorio-robotica; action: close">
                     <a-text value="X" color="#FFFFFF" align="center" width="6" position="0 0 0.01"></a-text>
                 </a-plane>
+            </a-entity>
+
+            <a-entity id="video-youtube-explanada" position="-12.00 2 -0.18" look-at="[camera]">
+                <a-plane width="5.4" height="3.04" position="0 0 0" class="clickable youtube-card"
+                    local-video-toggle="video: #video-robot-bailando; playButton: #video-robotica-play; label: #video-robotica-label"
+                    material="shader: flat; src: #video-robot-bailando; side: double; transparent: false">
+                </a-plane>
+                <a-entity id="video-robotica-play" visible="true">
+                    <a-circle radius="0.39" position="0 0 0.05" class="clickable youtube-card"
+                        local-video-toggle="video: #video-robot-bailando; playButton: #video-robotica-play; label: #video-robotica-label"
+                        material="shader: flat; color: #FF0000; opacity: 0.94; side: double">
+                    </a-circle>
+                    <a-triangle vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0" class="clickable youtube-card"
+                        local-video-toggle="video: #video-robot-bailando; playButton: #video-robotica-play; label: #video-robotica-label"
+                        position="0.04 0 0.08" material="shader: flat; color: #FFFFFF; side: double">
+                    </a-triangle>
+                </a-entity>
+                <a-plane width="5.4" height="0.46" position="0 -1.26 0.04" class="clickable youtube-card"
+                    local-video-toggle="video: #video-robot-bailando; playButton: #video-robotica-play; label: #video-robotica-label"
+                    material="shader: flat; color: #000000; opacity: 0.72; transparent: true; side: double">
+                </a-plane>
+                <a-entity id="video-robotica-label" position="0 -1.26 0.07" troika-text="value: Reproducir video; color: #FFFFFF; fontSize: 0.22; maxWidth: 4.9; textAlign: center; anchorX: center; anchorY: middle; fontWeight: bold"></a-entity>
             </a-entity>
         </a-entity>
 
