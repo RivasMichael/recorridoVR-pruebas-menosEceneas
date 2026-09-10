@@ -1378,7 +1378,8 @@
             var video = document.querySelector('#video-robot-bailando');
             if (!video) return;
 
-            video.muted = true;
+            video.muted = false;
+            video.volume = 1;
             video.playsInline = true;
             if (video.readyState === 0) video.load();
 
@@ -2684,7 +2685,7 @@
         <a-assets timeout="10000">
             <img id="img-entrada" src="imagenes/entrada esan.jpg">
             <img id="img-logo" src="imagenes/esann.png">
-            <video id="video-robot-bailando" src="videos/robotBailando.mp4" preload="auto" autoplay playsinline webkit-playsinline loop muted></video>
+            <video id="video-robot-bailando" src="videos/robotBailando.mp4" preload="auto" autoplay playsinline webkit-playsinline loop></video>
             <canvas id="img-flecha-plana" width="128" height="128"></canvas>
             <canvas id="img-info-icon" width="128" height="128"></canvas>
             <canvas id="img-flecha-derecha" width="128" height="128"></canvas>
@@ -3808,8 +3809,8 @@
                 </a-plane>
             </a-entity>
 
-            <a-entity id="video-youtube-explanada" position="-12.50 2.25 -0.18" look-at="[camera]">
-                <a-plane width="7.4" height="3.83" position="0 0 0" class="clickable youtube-card"
+            <a-entity id="video-youtube-explanada" position="-13.20 1.85 -0.18" look-at="[camera]">
+                <a-plane width="6.8" height="3.83" position="0 0 0" class="clickable youtube-card"
                     local-video-toggle="video: #video-robot-bailando; playButton: #video-robotica-play; label: #video-robotica-label"
                     material="shader: flat; src: #video-robot-bailando; side: double; transparent: false">
                 </a-plane>
@@ -3823,11 +3824,6 @@
                         position="0.04 0 0.08" material="shader: flat; color: #FFFFFF; side: double">
                     </a-triangle>
                 </a-entity>
-                <a-plane width="7.4" height="0.52" position="0 -1.59 0.04" class="clickable youtube-card"
-                    local-video-toggle="video: #video-robot-bailando; playButton: #video-robotica-play; label: #video-robotica-label"
-                    material="shader: flat; color: #000000; opacity: 0.72; transparent: true; side: double">
-                </a-plane>
-                <a-entity id="video-robotica-label" position="0 -1.59 0.07" troika-text="value: Reproducir video; color: #FFFFFF; fontSize: 0.25; maxWidth: 6.9; textAlign: center; anchorX: center; anchorY: middle; fontWeight: bold"></a-entity>
             </a-entity>
         </a-entity>
 
