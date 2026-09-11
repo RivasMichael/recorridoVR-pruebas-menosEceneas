@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -1914,16 +1914,29 @@
                         target.hasAttribute('data-target');
                 }
 
+                function isVisibleForController(target) {
+                    while (target && target !== controller.sceneEl) {
+                        var visibleAttr = target.getAttribute && target.getAttribute('visible');
+                        if (visibleAttr === false || visibleAttr === 'false') return false;
+                        if (target.object3D && target.object3D.visible === false) return false;
+                        target = target.parentElement;
+                    }
+                    return true;
+                }
+
                 function findControllerTargetFromRay() {
                     var raycaster = controller.components && controller.components.raycaster;
                     if (raycaster && raycaster.refreshObjects) raycaster.refreshObjects();
                     var intersections = raycaster && raycaster.intersections;
                     if (!intersections || !intersections.length) return null;
 
-                    var target = intersections[0].object && intersections[0].object.el;
-                    while (target && target !== controller.sceneEl) {
-                        if (isControllerTarget(target)) return target;
-                        target = target.parentElement;
+                    for (var i = 0; i < intersections.length; i++) {
+                        var target = intersections[i].object && intersections[i].object.el;
+                        if (!isVisibleForController(target)) continue;
+                        while (target && target !== controller.sceneEl) {
+                            if (isControllerTarget(target)) return target;
+                            target = target.parentElement;
+                        }
                     }
                     return null;
                 }
@@ -1965,8 +1978,6 @@
                 controller.addEventListener('xbuttondown', toggleMenu3D);
                 controller.addEventListener('triggerdown', activateHotspotSoon);
                 controller.addEventListener('selectstart', activateHotspotSoon);
-                controller.addEventListener('triggerup', activateControllerTarget);
-                controller.addEventListener('selectend', activateControllerTarget);
             }
         });
 
@@ -3891,8 +3902,7 @@
             </a-image>
 
             <a-entity id="frame-mundo-robotica" position="-0.65 3.15 -11.98" look-at="[camera]">
-                <a-plane class="clickable youtube-card" width="6.8" height="3.83" position="0 0 0"
-                    open-scene-frame="target: mundo_robotica"
+                <a-plane width="6.8" height="3.83" position="0 0 0"
                     material="shader: flat; src: #video-robotica-brazos; side: double; transparent: false">
                 </a-plane>
                 <a-entity id="video-robotica-brazos-play" class="clickable youtube-card"
