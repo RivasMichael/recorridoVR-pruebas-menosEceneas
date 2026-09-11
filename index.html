@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -1905,7 +1905,16 @@
                 var lastActivation = 0;
                 var pendingActivation = 0;
 
-                function findHotspotTargetFromRay() {
+                function isControllerTarget(target) {
+                    if (!target || !target.hasAttribute) return false;
+                    return target.hasAttribute('hotspot-info') ||
+                        target.hasAttribute('local-video-toggle') ||
+                        target.hasAttribute('open-scene-frame') ||
+                        target.hasAttribute('menu-interactivo') ||
+                        target.hasAttribute('data-target');
+                }
+
+                function findControllerTargetFromRay() {
                     var raycaster = controller.components && controller.components.raycaster;
                     if (raycaster && raycaster.refreshObjects) raycaster.refreshObjects();
                     var intersections = raycaster && raycaster.intersections;
@@ -1913,19 +1922,18 @@
 
                     var target = intersections[0].object && intersections[0].object.el;
                     while (target && target !== controller.sceneEl) {
-                        if (target.components && target.components['hotspot-info']) return target;
-                        if (target.hasAttribute && target.hasAttribute('hotspot-info')) return target;
+                        if (isControllerTarget(target)) return target;
                         target = target.parentElement;
                     }
                     return null;
                 }
 
-                function activateHotspot(evt) {
+                function activateControllerTarget(evt) {
                     var now = performance.now();
                     if (now - lastActivation < 420) return true;
                     if (document.querySelector('.panel-activo') && now - _lastPanelOpenAt < 650) return true;
 
-                    var target = findHotspotTargetFromRay();
+                    var target = findControllerTargetFromRay();
                     if (!target) return;
 
                     lastActivation = now;
@@ -1945,7 +1953,7 @@
 
                     function tryActivate() {
                         if (token !== pendingActivation) return;
-                        if (activateHotspot(evt)) return;
+                        if (activateControllerTarget(evt)) return;
                         if (performance.now() - startedAt > 280) return;
                         requestAnimationFrame(tryActivate);
                     }
@@ -1957,8 +1965,8 @@
                 controller.addEventListener('xbuttondown', toggleMenu3D);
                 controller.addEventListener('triggerdown', activateHotspotSoon);
                 controller.addEventListener('selectstart', activateHotspotSoon);
-                controller.addEventListener('triggerup', activateHotspot);
-                controller.addEventListener('selectend', activateHotspot);
+                controller.addEventListener('triggerup', activateControllerTarget);
+                controller.addEventListener('selectend', activateControllerTarget);
             }
         });
 
@@ -3888,10 +3896,13 @@
                 </a-plane>
                 <a-entity id="video-robotica-brazos-play" class="clickable youtube-card"
                     open-scene-frame="target: mundo_robotica">
-                    <a-circle radius="0.39" position="0 0 0.05"
+                    <a-circle class="clickable youtube-card" radius="0.39" position="0 0 0.05"
+                        open-scene-frame="target: mundo_robotica"
                         material="shader: flat; color: #FF0000; opacity: 0.94; side: double">
                     </a-circle>
-                    <a-triangle vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0"
+                    <a-triangle class="clickable youtube-card"
+                        open-scene-frame="target: mundo_robotica"
+                        vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0"
                         position="0.04 0 0.08" material="shader: flat; color: #FFFFFF; side: double">
                     </a-triangle>
                 </a-entity>
@@ -4008,9 +4019,11 @@
             </a-image>
 
             <a-camera id="camara-principal" camera wasd-controls-enabled="false" look-controls="reverseMouseDrag: true">
-                <!-- Cursor para navegador web (desktop). En VR no aplica porque no hay mouse. -->
-                <a-entity cursor="fuse: false; rayOrigin: mouse"
-                    raycaster="objects: .clickable, .icono-hotspot; far: 100">
+                <a-entity cursor="fuse: true; fuseTimeout: 900; rayOrigin: entity"
+                    raycaster="objects: .clickable, .icono-hotspot; far: 100"
+                    geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.014"
+                    material="color: #FFFFFF; shader: flat; opacity: 0.85"
+                    position="0 0 -1">
                 </a-entity>
 
                 <a-entity id="overlay-fade" geometry="primitive: sphere; radius: 0.1"
