@@ -4020,11 +4020,8 @@
             </a-image>
 
             <a-camera id="camara-principal" camera wasd-controls-enabled="false" look-controls="reverseMouseDrag: true">
-                <a-entity cursor="fuse: true; fuseTimeout: 900; rayOrigin: entity"
-                    raycaster="objects: .clickable, .icono-hotspot; far: 100"
-                    geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.014"
-                    material="color: #FFFFFF; shader: flat; opacity: 0.85"
-                    position="0 0 -1">
+                <a-entity cursor="fuse: false; rayOrigin: mouse"
+                    raycaster="objects: .clickable, .icono-hotspot; far: 100">
                 </a-entity>
 
                 <a-entity id="overlay-fade" geometry="primitive: sphere; radius: 0.1"
