@@ -2072,6 +2072,20 @@
             refreshRaycasters();
         }
 
+        function normalizarEscalaFlecha(position) {
+            var partes = (position || '').split(' ').map(parseFloat);
+            if (partes.length < 3 || partes.some(isNaN)) return '1 1 1';
+
+            var distancia = Math.sqrt(
+                partes[0] * partes[0] +
+                partes[1] * partes[1] +
+                partes[2] * partes[2]
+            );
+            var factor = Math.min(Math.max(distancia / 12, 0.9), 2.15);
+
+            return `${factor.toFixed(2)} ${factor.toFixed(2)} ${factor.toFixed(2)}`;
+        }
+
         function generarFlechas(listaFlechas) {
             var contenedor = document.querySelector('#flechas-container');
             contenedor.innerHTML = '';
@@ -2080,6 +2094,7 @@
 
                 var wrapper = document.createElement('a-entity');
                 wrapper.setAttribute('position', flecha.position);
+                wrapper.setAttribute('scale', normalizarEscalaFlecha(flecha.position));
                 wrapper.setAttribute('animation__float', `property: position; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true; to: ${flecha.position.split(' ')[0]} ${(parseFloat(flecha.position.split(' ')[1]) + 0.22).toFixed(2)} ${flecha.position.split(' ')[2]}`);
 
                 var entidad = document.createElement('a-image');
