@@ -603,7 +603,7 @@
             'explanada': 'Explanada\nConvention', 'eventos': 'Eventos',
             'butacas': 'Butacas', 'biblioteca': 'Biblioteca',
             'aula': 'Aula', 'fisica': 'Lab de\nFisica', 'conducta': 'Lab de\nConducta',
-            'robotica': 'Lab de\nRobotica', 'datalab': 'Data Lab', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
+            'robotica': 'Lab de\nRobotica', 'mundo_robotica': 'Mundo 360\nRobotica', 'datalab': 'Data Lab', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
             'estudio_pregrado': 'Sala Estudio\nPregrado', 'estudio_mba': 'Sala Estudio\nMBA',
             'cafeteria': 'Cafeteria', 'cafeteria_interior': 'Cafeteria\nInterior'
         };
@@ -612,7 +612,7 @@
             'fuera', 'entrada', 'jardin', 'explanada',
             'eventos', 'butacas',
             'aula', 'biblioteca',
-            'fisica', 'conducta', 'robotica', 'datalab', 'fablab', 'fablab2',
+            'fisica', 'conducta', 'robotica', 'mundo_robotica', 'datalab', 'fablab', 'fablab2',
             'estudio_pregrado', 'estudio_mba',
             'cafeteria', 'cafeteria_interior'
         ];
@@ -1287,6 +1287,33 @@
             }
         });
 
+        AFRAME.registerComponent('open-scene-frame', {
+            schema: {
+                target: { type: 'string' },
+                mirar: { type: 'string', default: '' }
+            },
+            init: function () {
+                var el = this.el;
+                var data = this.data;
+
+                el.addEventListener('click', function (evt) {
+                    if (_isDragging || !data.target) return;
+                    if (evt.preventDefault) evt.preventDefault();
+                    if (evt.stopPropagation) evt.stopPropagation();
+                    if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
+                    iniciarTransicion(data.target, data.mirar || undefined);
+                });
+
+                el.addEventListener('mouseenter', function () {
+                    el.setAttribute('scale', '1.06 1.06 1.06');
+                });
+
+                el.addEventListener('mouseleave', function () {
+                    el.setAttribute('scale', '1 1 1');
+                });
+            }
+        });
+
         AFRAME.registerComponent('local-video-toggle', {
             schema: {
                 video: { type: 'string' },
@@ -1396,6 +1423,30 @@
             if (!video) return;
             video.pause();
             actualizarEstadoVideoRobotica(false);
+        }
+
+        function reproducirVideo360Robotica() {
+            var video = document.querySelector('#video-robotica-brazos');
+            if (!video) return;
+            video.muted = false;
+            video.volume = 1;
+            video.playsInline = true;
+            if (video.readyState === 0) video.load();
+            try { video.currentTime = 0; } catch (e) {}
+            var playAttempt = video.play();
+            if (playAttempt && playAttempt.catch) {
+                playAttempt.catch(function () {
+                    video.muted = true;
+                    video.play().catch(function () {});
+                });
+            }
+        }
+
+        function pausarVideo360Robotica() {
+            var video = document.querySelector('#video-robotica-brazos');
+            if (!video) return;
+            video.pause();
+            try { video.currentTime = 0; } catch (e) {}
         }
 
         const escenas = {
@@ -1609,6 +1660,12 @@
                 flechas: [
                     { target: 'datalab', position: '-9.25 2 -7.65', rotation: '0 0 0' }
                 ]
+            },
+            'mundo_robotica': {
+                imagen: '#video-robotica-brazos', video360: true, rotacionSky: '0 -90 0',
+                flechas: [
+                    { target: 'robotica', position: '-0.65 2 -11.98', rotation: '0 0 0', label: 'Volver a Robotica' }
+                ]
             }
         };
 
@@ -1655,6 +1712,9 @@
             ],
             'robotica': [
                 { target: 'datalab', position: '-9.25 2 -7.65', rotation: '0 0 0' }
+            ],
+            'mundo_robotica': [
+                { target: 'robotica', position: '-0.65 2 -11.98', rotation: '0 0 0', label: 'Volver a Robotica' }
             ],
             'datalab': [
                 { target: 'aula', position: '-11.99 2 0.58', rotation: '0 90 0' },
@@ -1707,6 +1767,7 @@
             'fisica': '0 0 0',
             'conducta': '0 46.41 0',
             'robotica': '0 0 0',
+            'mundo_robotica': '0 0 0',
             'datalab': '0 85.49 0',
             'fablab': '0 0 0',
             'fablab2': '0 0 0',
@@ -1943,6 +2004,7 @@
             }
             var contenedorFlechas = document.querySelector('#flechas-container');
             var cieloFondo = document.querySelector('#cielo-fondo');
+            var video360Fondo = document.querySelector('#video-360-fondo');
             var overlayFade = document.querySelector('#overlay-fade');
             var btnLanzarMinijuego = document.querySelector('#btn-lanzar-minijuego');
             var fondoOscuro = document.querySelector('#hotspot-darkbg');
@@ -1952,6 +2014,7 @@
             btnLanzarMinijuego.setAttribute('visible', 'false');
             btnLanzarMinijuego.classList.remove('clickable');
             if (nombreEscena !== 'robotica') pausarVideoRobotica();
+            if (nombreEscena !== 'mundo_robotica') pausarVideo360Robotica();
 
             if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
 
@@ -1970,8 +2033,18 @@
             overlayFade.setAttribute('animation', { property: 'material.opacity', from: 0, to: 1, dur: duracionFade, easing: 'linear' });
 
             setTimeout(() => {
-                cieloFondo.setAttribute('src', datos.imagen);
-                cieloFondo.setAttribute('rotation', datos.rotacionSky || "0 -90 0");
+                if (datos.video360 && video360Fondo) {
+                    cieloFondo.setAttribute('visible', 'false');
+                    video360Fondo.setAttribute('src', datos.imagen);
+                    video360Fondo.setAttribute('rotation', datos.rotacionSky || "0 -90 0");
+                    video360Fondo.setAttribute('visible', 'true');
+                    reproducirVideo360Robotica();
+                } else {
+                    if (video360Fondo) video360Fondo.setAttribute('visible', 'false');
+                    cieloFondo.setAttribute('visible', 'true');
+                    cieloFondo.setAttribute('src', datos.imagen);
+                    cieloFondo.setAttribute('rotation', datos.rotacionSky || "0 -90 0");
+                }
                 generarFlechas(datos.flechas);
 
                 aplicarInicioEscena(nombreEscena, direccionDeseada);
@@ -1998,8 +2071,6 @@
                         iconos.forEach(i => i.classList.add('clickable'));
                         sincronizarPreviewsHotspots(hotspotActual);
                     }
-                    if (nombreEscena === 'robotica') reproducirVideoRobotica();
-
                     overlayFade.setAttribute('animation', { property: 'material.opacity', from: 1, to: 0, dur: duracionFade, easing: 'linear' });
                     refreshRaycasters();
                     _escenaActual = nombreEscena;
@@ -2700,7 +2771,8 @@
         <a-assets timeout="10000">
             <img id="img-entrada" src="imagenes/entrada esan.jpg">
             <img id="img-logo" src="imagenes/esann.png">
-            <video id="video-robot-bailando" src="videos/robotBailando.mp4" preload="auto" autoplay playsinline webkit-playsinline loop></video>
+            <video id="video-robot-bailando" src="videos/robotBailando.mp4" preload="metadata" playsinline webkit-playsinline></video>
+            <video id="video-robotica-brazos" src="videos/RoboticaBrasos.mp4" preload="metadata" playsinline webkit-playsinline></video>
             <canvas id="img-flecha-plana" width="128" height="128"></canvas>
             <canvas id="img-info-icon" width="128" height="128"></canvas>
             <canvas id="img-flecha-derecha" width="128" height="128"></canvas>
@@ -2777,6 +2849,7 @@
         </script>
 
         <a-sky id="cielo-fondo" radius="500" rotation="0 -90 0"></a-sky>
+        <a-videosphere id="video-360-fondo" radius="500" rotation="0 -90 0" visible="false"></a-videosphere>
         
         <a-entity id="cubos" cubos-digitales></a-entity>
 
@@ -3805,9 +3878,30 @@
             <a-circle src="#img-logo" radius="0.85" position="0 -0.5 0" rotation="-90 0 0"
                 material="transparent: true; opacity: 1; shader: flat"></a-circle>
 
-            <a-image src="#img-info-icon" position="0.13 2 -12.00" scale="0.8 0.8 0.8" look-at="[camera]"
+            <a-image src="#img-info-icon" position="11.90 2 -1.56" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-laboratorio-robotica; action: toggle">
             </a-image>
+
+            <a-entity id="frame-mundo-robotica" position="-0.65 3.15 -11.98" look-at="[camera]">
+                <a-plane width="6.8" height="3.83" position="0 0 0"
+                    material="shader: flat; src: #video-robotica-brazos; side: double; transparent: false">
+                </a-plane>
+                <a-entity id="video-robotica-brazos-play" class="clickable youtube-card"
+                    open-scene-frame="target: mundo_robotica">
+                    <a-circle radius="0.39" position="0 0 0.05"
+                        material="shader: flat; color: #FF0000; opacity: 0.94; side: double">
+                    </a-circle>
+                    <a-triangle vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0"
+                        position="0.04 0 0.08" material="shader: flat; color: #FFFFFF; side: double">
+                    </a-triangle>
+                </a-entity>
+                <a-entity geometry="primitive: rounded-rect; width: 2.7; height: 0.62; radius: 0.12"
+                    material="shader: flat; color: #E3173E; opacity: 0.94; side: double"
+                    position="0 -2.32 0.05">
+                    <a-text value="Entrar 360" align="center" color="#FFFFFF" width="3.2"
+                        position="0 0 0.04" font="exo2semibold"></a-text>
+                </a-entity>
+            </a-entity>
 
             <a-entity id="panel-info-laboratorio-robotica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/robotica.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
@@ -3840,6 +3934,11 @@
                     </a-triangle>
                 </a-entity>
             </a-entity>
+        </a-entity>
+
+        <a-entity id="hotspots-mundo_robotica" class="grupo-hotspots" visible="false">
+            <a-circle src="#img-logo" radius="0.85" position="0 -0.5 0" rotation="-90 0 0"
+                material="transparent: true; opacity: 1; shader: flat"></a-circle>
         </a-entity>
 
         <a-entity id="btn-lanzar-minijuego" position="3 1.5 -8" look-at="[camera]" visible="false"
