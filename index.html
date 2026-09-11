@@ -1428,6 +1428,9 @@
         function reproducirVideo360Robotica() {
             var video = document.querySelector('#video-robotica-brazos');
             if (!video) return;
+            if (!video.getAttribute('src')) {
+                video.setAttribute('src', video.dataset.src || 'videos/RoboticaBrasos.mp4');
+            }
             video.muted = false;
             video.volume = 1;
             video.playsInline = true;
@@ -2787,11 +2790,11 @@
     <a-scene renderer="antialias: true; colorManagement: true; sortObjects: true;" cursor="rayOrigin: mouse"
         raycaster="objects: .clickable, .icono-hotspot">
 
-        <a-assets timeout="10000">
+        <a-assets timeout="3000">
             <img id="img-entrada" src="imagenes/entrada esan.jpg">
             <img id="img-logo" src="imagenes/esann.png">
             <video id="video-robot-bailando" src="videos/robotBailando.mp4" preload="metadata" playsinline webkit-playsinline></video>
-            <video id="video-robotica-brazos" src="videos/RoboticaBrasos.mp4" preload="metadata" playsinline webkit-playsinline></video>
+            <video id="video-robotica-brazos" data-src="videos/RoboticaBrasos.mp4" preload="none" playsinline webkit-playsinline></video>
             <canvas id="img-flecha-plana" width="128" height="128"></canvas>
             <canvas id="img-info-icon" width="128" height="128"></canvas>
             <canvas id="img-flecha-derecha" width="128" height="128"></canvas>
