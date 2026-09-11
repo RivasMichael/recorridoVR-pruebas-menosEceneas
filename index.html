@@ -3891,7 +3891,8 @@
             </a-image>
 
             <a-entity id="frame-mundo-robotica" position="-0.65 3.15 -11.98" look-at="[camera]">
-                <a-plane width="6.8" height="3.83" position="0 0 0"
+                <a-plane class="clickable youtube-card" width="6.8" height="3.83" position="0 0 0"
+                    open-scene-frame="target: mundo_robotica"
                     material="shader: flat; src: #video-robotica-brazos; side: double; transparent: false">
                 </a-plane>
                 <a-entity id="video-robotica-brazos-play" class="clickable youtube-card"
