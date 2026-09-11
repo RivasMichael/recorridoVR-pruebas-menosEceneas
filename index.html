@@ -1073,7 +1073,7 @@
 
             var panelId = panel.id || targetSelector.replace(/^#/, '');
             var cardData = window.cardData2D && window.cardData2D[panelId];
-            if (cardData && cardData.title) return cardData.title;
+            if (cardData && cardData.title) return normalizarTituloCard(cardData.title);
 
             var texts = panel.querySelectorAll('a-text');
             for (var i = 0; i < texts.length; i++) {
@@ -1082,7 +1082,7 @@
                 var title = textEl.getAttribute('value');
                 if (typeof title !== 'string') continue;
                 title = title.trim();
-                if (title && title.toUpperCase() !== 'X') return title;
+                if (title && title.toUpperCase() !== 'X') return normalizarTituloCard(title);
             }
 
             var troikaTexts = panel.querySelectorAll('[troika-text]');
@@ -1091,9 +1091,36 @@
                 if (troikaEl.closest && troikaEl.closest('.close-btn')) continue;
                 var troikaData = troikaEl.getAttribute('troika-text');
                 var troikaTitle = troikaData && troikaData.value ? String(troikaData.value).trim() : '';
-                if (troikaTitle && troikaTitle.toUpperCase() !== 'X') return troikaTitle;
+                if (troikaTitle && troikaTitle.toUpperCase() !== 'X') return normalizarTituloCard(troikaTitle);
             }
             return '';
+        }
+
+        function normalizarTituloCard(titulo) {
+            return String(titulo || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('es-PE');
+        }
+
+        function normalizarTitulosCards() {
+            if (window.cardData2D) {
+                Object.keys(window.cardData2D).forEach(function (key) {
+                    var data = window.cardData2D[key];
+                    if (data && data.title) data.title = normalizarTituloCard(data.title);
+                });
+            }
+
+            document.querySelectorAll('[id^="panel-info-"]').forEach(function (panel) {
+                var textos = panel.querySelectorAll('a-text');
+                for (var i = 0; i < textos.length; i++) {
+                    var textEl = textos[i];
+                    if (textEl.closest && textEl.closest('.close-btn')) continue;
+                    var value = textEl.getAttribute('value');
+                    if (typeof value !== 'string') continue;
+                    value = value.trim();
+                    if (!value || value.toUpperCase() === 'X') continue;
+                    textEl.setAttribute('value', normalizarTituloCard(value));
+                    break;
+                }
+            });
         }
 
         function texto3DSeguro(texto) {
@@ -1428,9 +1455,7 @@
         function reproducirVideo360Robotica() {
             var video = document.querySelector('#video-robotica-brazos');
             if (!video) return;
-            if (!video.getAttribute('src')) {
-                video.setAttribute('src', video.dataset.src || 'videos/RoboticaBrasos.mp4');
-            }
+            prepararVideo360Robotica();
             video.muted = false;
             video.volume = 1;
             video.playsInline = true;
@@ -1443,6 +1468,16 @@
                     video.play().catch(function () {});
                 });
             }
+        }
+
+        function prepararVideo360Robotica() {
+            var video = document.querySelector('#video-robotica-brazos');
+            if (!video) return null;
+            if (!video.getAttribute('src')) {
+                video.setAttribute('src', video.dataset.src || 'videos/RoboticaBrasos.mp4');
+                video.load();
+            }
+            return video;
         }
 
         function pausarVideo360Robotica() {
@@ -2056,6 +2091,7 @@
 
             setTimeout(() => {
                 if (datos.video360 && video360Fondo) {
+                    prepararVideo360Robotica();
                     cieloFondo.setAttribute('visible', 'false');
                     video360Fondo.setAttribute('src', datos.imagen);
                     video360Fondo.setAttribute('rotation', datos.rotacionSky || "0 -90 0");
@@ -2091,6 +2127,7 @@
                         hotspotActual.setAttribute('visible', 'true');
                         var iconos = hotspotActual.querySelectorAll('.icono-hotspot');
                         iconos.forEach(i => i.classList.add('clickable'));
+                        if (nombreEscena === 'robotica') prepararVideo360Robotica();
                         sincronizarPreviewsHotspots(hotspotActual);
                     }
                     overlayFade.setAttribute('animation', { property: 'material.opacity', from: 1, to: 0, dur: duracionFade, easing: 'linear' });
@@ -2461,6 +2498,7 @@
         }
 
         window.onload = function () {
+            normalizarTitulosCards();
             var datos = escenas['fuera'];
             var cieloFondo = document.querySelector('#cielo-fondo');
             document.querySelectorAll('.icono-hotspot').forEach(function (icono) {
@@ -2596,7 +2634,7 @@
 
         function showCard2D(title, desc, imageSrc, sceneTag) {
             _lastCard2DOpenAt = performance.now();
-            document.getElementById('ic-title').textContent = title;
+            document.getElementById('ic-title').textContent = normalizarTituloCard(title);
             document.getElementById('ic-desc').textContent = desc;
             document.getElementById('ic-scene-tag').textContent = (sceneTag || 'ESAN').toUpperCase();
             var img = document.getElementById('ic-img');
@@ -3908,22 +3946,22 @@
                 <a-plane width="6.8" height="3.83" position="0 0 0"
                     material="shader: flat; src: #video-robotica-brazos; side: double; transparent: false">
                 </a-plane>
-                <a-entity id="video-robotica-brazos-play" class="clickable youtube-card"
-                    open-scene-frame="target: mundo_robotica">
-                    <a-circle class="clickable youtube-card" radius="0.39" position="0 0 0.05"
-                        open-scene-frame="target: mundo_robotica"
+                <a-entity id="video-robotica-brazos-play">
+                    <a-circle radius="0.39" position="0 0 0.05"
                         material="shader: flat; color: #FF0000; opacity: 0.94; side: double">
                     </a-circle>
-                    <a-triangle class="clickable youtube-card"
-                        open-scene-frame="target: mundo_robotica"
-                        vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0"
+                    <a-triangle vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0"
                         position="0.04 0 0.08" material="shader: flat; color: #FFFFFF; side: double">
                     </a-triangle>
                 </a-entity>
-                <a-entity geometry="primitive: rounded-rect; width: 2.7; height: 0.62; radius: 0.12"
+                <a-entity class="clickable youtube-card"
+                    open-scene-frame="target: mundo_robotica"
+                    geometry="primitive: rounded-rect; width: 2.7; height: 0.62; radius: 0.12"
                     material="shader: flat; color: #E3173E; opacity: 0.94; side: double"
                     position="0 -2.32 0.05">
                     <a-text value="Entrar 360" align="center" color="#FFFFFF" width="3.2"
+                        class="clickable youtube-card"
+                        open-scene-frame="target: mundo_robotica"
                         position="0 0 0.04" font="exo2semibold"></a-text>
                 </a-entity>
             </a-entity>
