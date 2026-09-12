@@ -1097,7 +1097,9 @@
         }
 
         function normalizarTituloCard(titulo) {
-            return String(titulo || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('es-PE');
+            var limpio = String(titulo || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('es-PE');
+            if (!limpio) return '';
+            return limpio.charAt(0).toLocaleUpperCase('es-PE') + limpio.slice(1);
         }
 
         function normalizarTitulosCards() {
@@ -1124,19 +1126,7 @@
         }
 
         function texto3DSeguro(texto) {
-            return (texto || '')
-                .replace(/[ÁÀÂÄ]/g, 'A')
-                .replace(/[ÉÈÊË]/g, 'E')
-                .replace(/[ÍÌÎÏ]/g, 'I')
-                .replace(/[ÓÒÔÖ]/g, 'O')
-                .replace(/[ÚÙÛÜ]/g, 'U')
-                .replace(/[áàâä]/g, 'a')
-                .replace(/[éèêë]/g, 'e')
-                .replace(/[íìîï]/g, 'i')
-                .replace(/[óòôö]/g, 'o')
-                .replace(/[úùûü]/g, 'u')
-                .replace(/Ñ/g, 'N')
-                .replace(/ñ/g, 'n')
+            return String(texto || '')
                 .replace(/[¡¿]/g, '');
         }
 
@@ -2497,6 +2487,66 @@
             }
         }
 
+        function bindFrameRobotica360() {
+            var scene = document.querySelector('a-scene');
+            if (!scene) return;
+
+            function puntoEnTriangulo(p, a, b, c) {
+                var area = function (p1, p2, p3) {
+                    return Math.abs((p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y)) / 2);
+                };
+                var total = area(a, b, c);
+                var suma = area(p, a, b) + area(p, b, c) + area(p, c, a);
+                return Math.abs(total - suma) <= 0.75;
+            }
+
+            function puntoDentroDelFrame(clientX, clientY) {
+                var plane = document.querySelector('#frame-mundo-robotica-preview');
+                if (!plane || !plane.object3D || !scene.camera || !scene.canvas) return false;
+
+                var rect = scene.canvas.getBoundingClientRect();
+                var width = Number(plane.getAttribute('width')) || 0;
+                var height = Number(plane.getAttribute('height')) || 0;
+                if (!width || !height) return false;
+
+                plane.object3D.updateMatrixWorld(true);
+                var corners = [
+                    new THREE.Vector3(-width / 2, height / 2, 0),
+                    new THREE.Vector3(width / 2, height / 2, 0),
+                    new THREE.Vector3(width / 2, -height / 2, 0),
+                    new THREE.Vector3(-width / 2, -height / 2, 0)
+                ].map(function (corner) {
+                    corner.applyMatrix4(plane.object3D.matrixWorld).project(scene.camera);
+                    return {
+                        x: (corner.x + 1) / 2 * rect.width + rect.left,
+                        y: (-corner.y + 1) / 2 * rect.height + rect.top
+                    };
+                });
+
+                var p = { x: clientX, y: clientY };
+                return puntoEnTriangulo(p, corners[0], corners[1], corners[2]) ||
+                    puntoEnTriangulo(p, corners[0], corners[2], corners[3]);
+            }
+
+            scene.addEventListener('renderstart', function () {
+                if (!scene.canvas || scene.canvas._robotica360FrameBound) return;
+                scene.canvas._robotica360FrameBound = true;
+                var lastOpen = 0;
+
+                scene.canvas.addEventListener('pointerup', function (evt) {
+                    if (_isDragging || _escenaActual !== 'robotica' || document.querySelector('.panel-activo')) return;
+                    if (!puntoDentroDelFrame(evt.clientX, evt.clientY)) return;
+
+                    var now = performance.now();
+                    if (now - lastOpen < 450) return;
+                    lastOpen = now;
+                    if (evt.preventDefault) evt.preventDefault();
+                    if (evt.stopPropagation) evt.stopPropagation();
+                    iniciarTransicion('mundo_robotica');
+                });
+            });
+        }
+
         window.onload = function () {
             normalizarTitulosCards();
             var datos = escenas['fuera'];
@@ -2541,6 +2591,7 @@
             document.querySelector('#btn-volver-tour').addEventListener('click', desactivarMinijuego);
             document.querySelector('#btn-reset-balon').addEventListener('click', resetearPelota);
             bindMouseHotspotFallback();
+            bindFrameRobotica360();
 
             var darkbg = document.querySelector('#hotspot-darkbg');
             if (darkbg) {
@@ -3943,7 +3994,7 @@
             </a-image>
 
             <a-entity id="frame-mundo-robotica" position="-0.65 3.15 -11.98" look-at="[camera]">
-                <a-plane width="6.8" height="3.83" position="0 0 0"
+                <a-plane id="frame-mundo-robotica-preview" width="6.8" height="3.83" position="0 0 0"
                     material="shader: flat; src: #video-robotica-brazos; side: double; transparent: false">
                 </a-plane>
                 <a-entity id="video-robotica-brazos-play">
@@ -3953,16 +4004,6 @@
                     <a-triangle vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0"
                         position="0.04 0 0.08" material="shader: flat; color: #FFFFFF; side: double">
                     </a-triangle>
-                </a-entity>
-                <a-entity class="clickable youtube-card"
-                    open-scene-frame="target: mundo_robotica"
-                    geometry="primitive: rounded-rect; width: 2.7; height: 0.62; radius: 0.12"
-                    material="shader: flat; color: #E3173E; opacity: 0.94; side: double"
-                    position="0 -2.32 0.05">
-                    <a-text value="Entrar 360" align="center" color="#FFFFFF" width="3.2"
-                        class="clickable youtube-card"
-                        open-scene-frame="target: mundo_robotica"
-                        position="0 0 0.04" font="exo2semibold"></a-text>
                 </a-entity>
             </a-entity>
 
