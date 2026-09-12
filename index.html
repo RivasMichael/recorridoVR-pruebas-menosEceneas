@@ -2882,6 +2882,7 @@
         <a-assets timeout="3000">
             <img id="img-entrada" src="imagenes/entrada esan.jpg">
             <img id="img-logo" src="imagenes/esann.png">
+            <img id="img-robotica-preview" src="imagenes/Fotos/roboticaF.webp">
             <video id="video-robot-bailando" src="videos/robotBailando.mp4" preload="metadata" playsinline webkit-playsinline></video>
             <video id="video-robotica-brazos" data-src="videos/RoboticaBrasos.mp4" preload="none" playsinline webkit-playsinline></video>
             <canvas id="img-flecha-plana" width="128" height="128"></canvas>
@@ -3995,13 +3996,17 @@
 
             <a-entity id="frame-mundo-robotica" position="-0.65 3.15 -11.98" look-at="[camera]">
                 <a-plane id="frame-mundo-robotica-preview" width="6.8" height="3.83" position="0 0 0"
-                    material="shader: flat; src: #video-robotica-brazos; side: double; transparent: false">
+                    material="shader: flat; src: #img-robotica-preview; side: double; transparent: false">
                 </a-plane>
-                <a-entity id="video-robotica-brazos-play">
-                    <a-circle radius="0.39" position="0 0 0.05"
+                <a-entity id="video-robotica-brazos-play" class="clickable youtube-card"
+                    open-scene-frame="target: mundo_robotica">
+                    <a-circle class="clickable youtube-card" radius="0.39" position="0 0 0.05"
+                        open-scene-frame="target: mundo_robotica"
                         material="shader: flat; color: #FF0000; opacity: 0.94; side: double">
                     </a-circle>
-                    <a-triangle vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0"
+                    <a-triangle class="clickable youtube-card"
+                        open-scene-frame="target: mundo_robotica"
+                        vertex-a="-0.11 -0.18 0" vertex-b="-0.11 0.18 0" vertex-c="0.21 0 0"
                         position="0.04 0 0.08" material="shader: flat; color: #FFFFFF; side: double">
                     </a-triangle>
                 </a-entity>
