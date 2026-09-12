@@ -32,6 +32,11 @@
             height: 100%;
             overflow: hidden;
             font-family: var(--font-cuerpo);
+            background: var(--color-negro);
+        }
+
+        a-scene {
+            background: var(--color-negro);
         }
 
         #pantalla-carga {
@@ -2552,8 +2557,11 @@
                 icono.classList.add('clickable');
             });
             sincronizarPreviewsHotspots(document);
+            var inicioRevelado = false;
 
             function revelarInicio() {
+                if (inicioRevelado) return;
+                inicioRevelado = true;
                 ocultarLoader();
                 precargarAdyacentes('fuera');
                 var hotspotEntrada = document.querySelector('#hotspots-fuera');
@@ -2581,7 +2589,7 @@
             setTimeout(function () {
                 revelarInicio();
                 setTimeout(aplicarMarcosPaneles, 200);
-            }, 1500);
+            }, 4000);
 
             document.getElementById('btn-menu-2d').addEventListener('click', toggleMenu3D);
             document.querySelector('#btn-lanzar-minijuego').addEventListener('click', activarMinijuego);
@@ -2636,16 +2644,25 @@
         }
 
         var _loaderOculto = false;
+        var _inicioApp = Date.now();
+        var _loaderMinimoMs = 2600;
         function ocultarLoader() {
             if (_loaderOculto) return;
             _loaderOculto = true;
             var loader = document.getElementById('pantalla-carga');
             if (loader) {
-                loader.classList.add('oculto');
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    window.dispatchEvent(new Event('resize'));
-                }, 1000);
+                var esperaRestante = Math.max(0, _loaderMinimoMs - (Date.now() - _inicioApp));
+                setTimeout(function () {
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(function () {
+                            loader.classList.add('oculto');
+                            setTimeout(() => {
+                                loader.style.display = 'none';
+                                window.dispatchEvent(new Event('resize'));
+                            }, 1000);
+                        });
+                    });
+                }, esperaRestante);
             }
         }
 
