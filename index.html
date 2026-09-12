@@ -513,23 +513,23 @@
           init: function () {
             const scene3D = this.el.sceneEl.object3D;
             this.count = 1000;
-            
+
             this.geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(this.count * 3);
             const colors = new Float32Array(this.count * 3);
-            
-            const colorRojo = new THREE.Color(0xff0026);    
-            const colorCeleste = new THREE.Color(0x00bfff); 
-            const colorBlanco = new THREE.Color(0xffffff);  
-            
+
+            const colorRojo = new THREE.Color(0xff0026);
+            const colorCeleste = new THREE.Color(0x00bfff);
+            const colorBlanco = new THREE.Color(0xffffff);
+
             this.velocities = [];
 
           loopParticulas:
             for (let i = 0; i < this.count; i++) {
               positions[i * 3] = (Math.random() - 0.5) * 50;
-              positions[i * 3 + 1] = (Math.random() - 0.5) * 40 + 1.6; 
+              positions[i * 3 + 1] = (Math.random() - 0.5) * 40 + 1.6;
               positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
-              
+
               const rand = Math.random();
               let selectedColor;
               if (rand < 0.33) {
@@ -539,19 +539,19 @@
               } else {
                 selectedColor = colorBlanco;
               }
-              
+
               colors[i * 3] = selectedColor.r;
               colors[i * 3 + 1] = selectedColor.g;
               colors[i * 3 + 2] = selectedColor.b;
 
-              this.velocities.push((Math.random() - 0.5) * 0.02); 
-              this.velocities.push((Math.random() - 0.5) * 0.02); 
-              this.velocities.push((Math.random() - 0.5) * 0.02); 
+              this.velocities.push((Math.random() - 0.5) * 0.02);
+              this.velocities.push((Math.random() - 0.5) * 0.02);
+              this.velocities.push((Math.random() - 0.5) * 0.02);
             }
-            
+
             this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             this.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            
+
             const canvas = document.createElement('canvas');
             canvas.width = 16;
             canvas.height = 16;
@@ -568,29 +568,29 @@
               map: texture,
               blending: THREE.NormalBlending
             });
-            
+
             this.particleSystem = new THREE.Points(this.geometry, this.material);
             scene3D.add(this.particleSystem);
           },
-          
+
           tick: function (time, timeDelta) {
             if (!this.particleSystem) return;
-            
+
             const pos = this.geometry.attributes.position.array;
             this.material.size = (Math.sin(time * 0.002) * 0.08) + 0.20;
 
             for (let i = 0; i < this.count; i++) {
               const i3 = i * 3;
-              
+
               pos[i3] += this.velocities[i3];
               pos[i3 + 1] += this.velocities[i3 + 1];
               pos[i3 + 2] += this.velocities[i3 + 2];
-              
+
               if (Math.abs(pos[i3]) > 25) this.velocities[i3] *= -1;
               if (Math.abs(pos[i3 + 1] - 1.6) > 20) this.velocities[i3 + 1] *= -1;
               if (Math.abs(pos[i3 + 2]) > 25) this.velocities[i3 + 2] *= -1;
             }
-            
+
             this.geometry.attributes.position.needsUpdate = true;
             this.particleSystem.rotation.y += 0.0005;
             this.particleSystem.rotation.x += 0.0002;
@@ -598,7 +598,7 @@
         });
 
         const nombresDestinos = {
-            'fuera': 'Exterior\nESAN',
+            'fuera': 'Exterior\nEsan',
             'entrada': 'Entrada\nPrincipal', 'jardin': 'Jardin',
             'explanada': 'Explanada\nConvention', 'eventos': 'Eventos',
             'butacas': 'Butacas', 'biblioteca': 'Biblioteca',
@@ -1095,7 +1095,8 @@
         function normalizarTituloCard(titulo) {
             var limpio = String(titulo || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('es-PE');
             if (!limpio) return '';
-            return limpio.charAt(0).toLocaleUpperCase('es-PE') + limpio.slice(1);
+            var tituloNormalizado = limpio.charAt(0).toLocaleUpperCase('es-PE') + limpio.slice(1);
+            return tituloNormalizado.replace(/\besan\b/gi, 'Esan');
         }
 
         function normalizarTitulosCards() {
@@ -2631,7 +2632,7 @@
 
         var _marcosAplicados = false;
         function aplicarMarcosPaneles() {
-            return; 
+            return;
         }
 
         var _loaderOculto = false;
@@ -2672,10 +2673,16 @@
                 scene: 'Entrada Principal'
             },
             'panel-info-fuera': {
-                title: 'Exterior ESAN',
+                title: 'Exterior Esan',
                 desc: 'Amplias areas verdes y zonas de transito que destacan nuestra moderna arquitectura.',
                 image: 'imagenes/Fotos/fuenteF.webp',
-                scene: 'Exterior ESAN'
+                scene: 'Exterior Esan'
+            },
+            'panel-info-cafeteria': {
+                title: 'Cafeteria Esan',
+                desc: 'El lugar favorito para estudiar en grupo, relajarse y disfrutar de una variada oferta.',
+                image: 'imagenes/cafeteriaF.webp',
+                scene: 'Cafeteria'
             }
         };
 
@@ -2683,7 +2690,7 @@
             _lastCard2DOpenAt = performance.now();
             document.getElementById('ic-title').textContent = normalizarTituloCard(title);
             document.getElementById('ic-desc').textContent = desc;
-            document.getElementById('ic-scene-tag').textContent = (sceneTag || 'ESAN').toUpperCase();
+            document.getElementById('ic-scene-tag').textContent = normalizarTituloCard(sceneTag || 'Esan');
             var img = document.getElementById('ic-img');
             if (imageSrc) {
                 img.src = imageSrc;
@@ -2958,7 +2965,7 @@
 
         <a-sky id="cielo-fondo" radius="500" rotation="0 -90 0"></a-sky>
         <a-videosphere id="video-360-fondo" radius="500" rotation="0 -90 0" visible="false"></a-videosphere>
-        
+
         <a-entity id="cubos" cubos-digitales></a-entity>
 
         <a-light type="ambient" color="#FFF" intensity="1.5"></a-light>
@@ -3085,7 +3092,7 @@
             <a-entity id="panel-info-comedor-fuente" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/comedorCentrarF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="COMEDOR ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="COMEDOR Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="Menus diarios balanceados y accesibles pensados para la convivencia y el descanso estudiantil."
@@ -3170,7 +3177,7 @@
             <a-entity id="panel-info-capilla" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/capillaF.jpg" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="CAPILLA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="CAPILLA Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="Espacio sagrado de fe, oracion y recogimiento consagrado a la memoria de nuestra comunidad."
@@ -3301,7 +3308,7 @@
             <a-entity id="panel-info-fablab-voley" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fabLabF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="FABLAB ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="FABLAB Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="Laboratorio de innovacion y prototipado donde el diseno digital se vuelve tangible."
@@ -3404,7 +3411,7 @@
             <a-entity id="panel-info-convention-explanada" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/conventionCenterF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="CONVENTION CENTER ESAN" color="#E3173E" align="center" width="7"
+                <a-text value="CONVENTION CENTER Esan" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
@@ -3511,7 +3518,7 @@
             <a-entity id="panel-info-biblioteca" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/bibliotecaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="BIBLIOTECA ESAN" color="#E3173E" align="center" width="7"
+                <a-text value="BIBLIOTECA Esan" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
@@ -3552,7 +3559,7 @@
             <a-entity id="panel-info-inpro-danza" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/improF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="INPRO ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="INPRO Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="Nuestro grupo de improvisacion teatral ideal para potenciar la comunicacion, confianza y liderazgo."
@@ -3614,7 +3621,7 @@
             <a-entity id="panel-info-libreria-edificioD" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/edificioDF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="LIBRERIA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="LIBRERIA Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="Textos especializados en negocios y articulos de escritorio para complementar tu formacion."
@@ -3717,7 +3724,7 @@
             <a-entity id="panel-info-ecoesan" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/ecoEsanF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="ECO ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="ECO Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="Iniciativa ambiental que promueve el reciclaje y el cuidado del entorno con incentivos especiales."
@@ -3733,10 +3740,10 @@
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-cafeteria-ecoesan; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-cafeteria-ecoesan" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/comedorEstudiantilF.webp" data-premium="true">
+            <a-entity id="panel-info-cafeteria-ecoesan" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/cafeteriaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="CAFETERIA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="CAFETERIA Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="Punto de encuentro perfecto para avanzar trabajos grupales o tomar un cafe."
@@ -3838,10 +3845,10 @@
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-cafeteria; action: toggle">
             </a-image>
 
-            <a-entity id="panel-info-cafeteria" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/cafeteria.webp" data-premium="true">
+            <a-entity id="panel-info-cafeteria" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/cafeteriaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="CAFETERIA ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="CAFETERIA Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
                     value="El lugar favorito para estudiar en grupo, relajarse y disfrutar de una variada oferta."
@@ -3860,7 +3867,7 @@
             </a-image>
             <a-entity id="panel-info-fuera" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/fuenteF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-                <a-text value="Exterior ESAN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="Exterior Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
                 <a-text
                     value="Amplias areas verdes y zonas de transito que destacan nuestra moderna arquitectura."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
@@ -3970,7 +3977,7 @@
             </a-image>
             <a-entity id="panel-info-cafeteria_interior" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/interiorCafeF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-                <a-text value="CAFETERIA INTERIOR ESAN" color="#E3173E" align="center" width="7"
+                <a-text value="CAFETERIA INTERIOR Esan" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
                     value="Ambiente moderno con variadas opciones gastronomicas que hacen mas amena la vida universitaria."
@@ -4075,7 +4082,7 @@
                     material="color: #E3173E; opacity: 1; shader: flat" position="0 0 -0.08"></a-entity>
                 <a-entity geometry="primitive: rounded-rect; width: 4.0; height: 1.45; radius: 0.16"
                     material="color: #0D0D0D; opacity: 0.96; shader: flat" position="0 0 -0.04"></a-entity>
-                <a-entity value="CANCHA ESAN" align="center" color="#E3173E" width="3.8" position="0 0.35 0.02"
+                <a-entity value="CANCHA Esan" align="center" color="#E3173E" width="3.8" position="0 0.35 0.02"
                     font="exo2semibold" scale="0.7 0.7 0.7"></a-entity>
                 <a-text id="texto-marcador" value="PUNTOS: 0" align="center" color="#FFD700" width="3.8"
                     position="0 -0.2 0.02" font="exo2semibold" scale="1.2 1.2 1.2"></a-text>
