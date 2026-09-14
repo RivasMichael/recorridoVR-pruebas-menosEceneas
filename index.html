@@ -885,7 +885,7 @@
                             var badgeTxt = document.createElement('a-entity');
                             badgeTxt.setAttribute('troika-text', {
                                 value: 'Esan Xperience 360', color: '#E3173E',
-                                fontSize: 0.095, maxWidth: bW - 0.12,
+                                fontSize: 0.115, maxWidth: bW - 0.12,
                                 textAlign: 'center', anchorX: 'center', anchorY: 'middle',
                                 fontWeight: 'bold'
                             });
@@ -1002,6 +1002,17 @@
                 group = group.parentNode;
             }
             return !group || !group.object3D || group.object3D.visible;
+        }
+
+        function isVisibleInScene(el) {
+            var scene = document.querySelector('a-scene');
+            while (el && el !== scene) {
+                var visibleAttr = el.getAttribute && el.getAttribute('visible');
+                if (visibleAttr === false || visibleAttr === 'false') return false;
+                if (el.object3D && el.object3D.visible === false) return false;
+                el = el.parentElement;
+            }
+            return true;
         }
 
         function cerrarPanelVR(panel) {
@@ -1451,6 +1462,10 @@
                     var now = Date.now();
                     if (now - lastToggleTime < 250) return;
                     lastToggleTime = now;
+                    if (!isVisibleInScene(el)) {
+                        pointerDownInside = false;
+                        return;
+                    }
 
                     if (!video) video = document.querySelector(data.video);
                     if (!video) return;
@@ -1489,9 +1504,9 @@
                     setPlayingState(false);
                 }
 
-                el.addEventListener('pointerdown', function () { pointerDownInside = true; });
-                el.addEventListener('mousedown', function () { pointerDownInside = true; });
-                el.addEventListener('touchstart', function () { pointerDownInside = true; });
+                el.addEventListener('pointerdown', function () { pointerDownInside = isVisibleInScene(el); });
+                el.addEventListener('mousedown', function () { pointerDownInside = isVisibleInScene(el); });
+                el.addEventListener('touchstart', function () { pointerDownInside = isVisibleInScene(el); });
                 el.addEventListener('click', toggleVideo);
                 el.addEventListener('mouseup', function (evt) {
                     if (!pointerDownInside) return;
