@@ -277,6 +277,7 @@
         .ic-body { padding: 20px 24px 26px; }
         .ic-scene-tag {
             display: inline-block;
+            white-space: nowrap;
             background: #fde8ec; color: var(--esan-red);
             font-size: 10px; font-weight: 700;
             letter-spacing: 1.2px; text-transform: uppercase;
@@ -604,13 +605,13 @@
 
         const nombresDestinos = {
             'fuera': 'Exterior\nEsan',
-            'entrada': 'Entrada\nPrincipal', 'jardin': 'Jardin',
+            'entrada': 'Entrada\nPrincipal', 'jardin': 'Jardín',
             'explanada': 'Explanada\nConvention', 'eventos': 'Eventos',
             'butacas': 'Butacas', 'biblioteca': 'Biblioteca',
-            'aula': 'Aula', 'fisica': 'Lab de\nFisica', 'conducta': 'Lab de\nConducta',
-            'robotica': 'Lab de\nRobotica', 'mundo_robotica': 'Mundo 360\nRobotica', 'datalab': 'Data Lab', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
+            'aula': 'Aula', 'fisica': 'Lab de\nFísica', 'conducta': 'Lab de\nConducta',
+            'robotica': 'Lab de\nRobótica', 'mundo_robotica': 'Mundo 360\nRobótica', 'datalab': 'Data Lab', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
             'estudio_pregrado': 'Sala Estudio\nPregrado', 'estudio_mba': 'Sala Estudio\nMBA',
-            'cafeteria': 'Cafeteria', 'cafeteria_interior': 'Cafeteria\nInterior'
+            'cafeteria': 'Cafetería', 'cafeteria_interior': 'Cafetería\nInterior'
         };
 
         const destinosMVP = [
@@ -876,7 +877,7 @@
                             imgEl.setAttribute('position', '0 ' + imgCY.toFixed(3) + ' 0.02');
                             panel.appendChild(imgEl);
 
-                            var bW = 1.12;
+                            var bW = 1.78;
                             var bX = (-w / 2 + bW / 2 + 0.26).toFixed(3);
                             var bY = badgeCY.toFixed(3);
                             panel.appendChild(mkRounded('#FDE8EC', bW.toFixed(2), BH.toFixed(2), '0.07', bX, bY, '0.03', '1', false));
@@ -884,7 +885,7 @@
                             var badgeTxt = document.createElement('a-entity');
                             badgeTxt.setAttribute('troika-text', {
                                 value: 'Esan Experience 360', color: '#E3173E',
-                                fontSize: 0.105, maxWidth: bW - 0.12,
+                                fontSize: 0.095, maxWidth: bW - 0.12,
                                 textAlign: 'center', anchorX: 'center', anchorY: 'middle',
                                 fontWeight: 'bold'
                             });
@@ -1101,7 +1102,66 @@
             var limpio = String(titulo || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('es-PE');
             if (!limpio) return '';
             var tituloNormalizado = limpio.charAt(0).toLocaleUpperCase('es-PE') + limpio.slice(1);
-            return tituloNormalizado.replace(/\besan\b/gi, 'Esan');
+            return tituloNormalizado
+                .replace(/\besan\b/gi, 'Esan')
+                .replace(/\bfablab\b/gi, 'FabLab')
+                .replace(/\bdata lab\b/gi, 'Data Lab')
+                .replace(/\bdatalab\b/gi, 'Data Lab')
+                .replace(/\bfisica\b/gi, 'Física')
+                .replace(/\brobotica\b/gi, 'Robótica')
+                .replace(/\bcafeteria\b/gi, 'Cafetería')
+                .replace(/\bquimica\b/gi, 'Química')
+                .replace(/\bcomputo\b/gi, 'Cómputo')
+                .replace(/\bubicacion\b/gi, 'Ubicación')
+                .replace(/\beducacion\b/gi, 'Educación')
+                .replace(/\bamerica\b/gi, 'América')
+                .replace(/\bareas\b/gi, 'Áreas')
+                .replace(/\btransito\b/gi, 'Tránsito')
+                .replace(/\btecnologicos\b/gi, 'Tecnológicos')
+                .replace(/\bautomatizacion\b/gi, 'Automatización')
+                .replace(/\binnovacion\b/gi, 'Innovación')
+                .replace(/\bfabricacion\b/gi, 'Fabricación')
+                .replace(/\bacademica\b/gi, 'Académica')
+                .replace(/\btransicion\b/gi, 'Transición')
+                .replace(/\bteoria\b/gi, 'Teoría')
+                .replace(/\bpractica\b/gi, 'Práctica')
+                .replace(/\bdiscusion\b/gi, 'Discusión')
+                .replace(/\bcientifica\b/gi, 'Científica')
+                .replace(/\bexperimentacion\b/gi, 'Experimentación')
+                .replace(/\banalisis\b/gi, 'Análisis')
+                .replace(/\bsimulacion\b/gi, 'Simulación')
+                .replace(/\binvestigacion\b/gi, 'Investigación')
+                .replace(/\borientacion\b/gi, 'Orientación')
+                .replace(/\binteraccion\b/gi, 'Interacción')
+                .replace(/\bexhibicion\b/gi, 'Exhibición')
+                .replace(/\belectronica\b/gi, 'Electrónica')
+                .replace(/\bgestion\b/gi, 'Gestión')
+                .replace(/\bensenanza\b/gi, 'Enseñanza')
+                .replace(/\batencion\b/gi, 'Atención')
+                .replace(/\barea\b/gi, 'Área')
+                .replace(/\basesoria\b/gi, 'Asesoría')
+                .replace(/\bhistorico\b/gi, 'Histórico')
+                .replace(/\banos\b/gi, 'Años')
+                .replace(/\bevolucion\b/gi, 'Evolución')
+                .replace(/\bmenus\b/gi, 'Menús')
+                .replace(/\boracion\b/gi, 'Oración')
+                .replace(/\brecreacion\b/gi, 'Recreación')
+                .replace(/\bdinamicas\b/gi, 'Dinámicas')
+                .replace(/\bintegracion\b/gi, 'Integración')
+                .replace(/\bcorazon\b/gi, 'Corazón')
+                .replace(/\bconcentracion\b/gi, 'Concentración')
+                .replace(/\bfisico\b/gi, 'Físico')
+                .replace(/\bimprovisacion\b/gi, 'Improvisación')
+                .replace(/\bcomunicacion\b/gi, 'Comunicación')
+                .replace(/\brapidos\b/gi, 'Rápidos')
+                .replace(/\barticulos\b/gi, 'Artículos')
+                .replace(/\bformacion\b/gi, 'Formación')
+                .replace(/\bultima\b/gi, 'Última')
+                .replace(/\bgeneracion\b/gi, 'Generación')
+                .replace(/\bfenomenos\b/gi, 'Fenómenos')
+                .replace(/\bgastronomicas\b/gi, 'Gastronómicas')
+                .replace(/\bacademico\b/gi, 'Académico')
+                .replace(/\bacademicos\b/gi, 'Académicos');
         }
 
         function normalizarTitulosCards() {
@@ -1344,6 +1404,7 @@
                 var data = this.data;
                 var video = document.querySelector(data.video);
                 var lastToggleTime = 0;
+                var pointerDownInside = false;
 
                 function getPlayButton() {
                     return data.playButton ? document.querySelector(data.playButton) : null;
@@ -1371,6 +1432,8 @@
 
                     if (!video) video = document.querySelector(data.video);
                     if (!video) return;
+                    if (video._lastLocalToggleTime && now - video._lastLocalToggleTime < 300) return;
+                    video._lastLocalToggleTime = now;
                     if (evt && evt.preventDefault) evt.preventDefault();
                     if (evt && evt.stopPropagation) evt.stopPropagation();
                     if (evt && evt.stopImmediatePropagation) evt.stopImmediatePropagation();
@@ -1380,6 +1443,9 @@
                         setPlayingState(true);
                     } else if (video.paused) {
                         video.muted = false;
+                        if (!video.getAttribute('src') && video.dataset.src) {
+                            video.setAttribute('src', video.dataset.src);
+                        }
                         if (video.readyState === 0) video.load();
                         var playAttempt = video.play();
                         if (playAttempt && playAttempt.catch) {
@@ -1393,10 +1459,33 @@
                     }
                 }
 
+                if (video) {
+                    video.pause();
+                    video.muted = false;
+                    video.removeAttribute('autoplay');
+                    try { video.currentTime = 0; } catch (e) {}
+                    setPlayingState(false);
+                }
+
+                el.addEventListener('pointerdown', function () { pointerDownInside = true; });
+                el.addEventListener('mousedown', function () { pointerDownInside = true; });
+                el.addEventListener('touchstart', function () { pointerDownInside = true; });
                 el.addEventListener('click', toggleVideo);
-                el.addEventListener('mouseup', toggleVideo);
-                el.addEventListener('pointerup', toggleVideo);
-                el.addEventListener('touchend', toggleVideo);
+                el.addEventListener('mouseup', function (evt) {
+                    if (!pointerDownInside) return;
+                    pointerDownInside = false;
+                    toggleVideo(evt);
+                });
+                el.addEventListener('pointerup', function (evt) {
+                    if (!pointerDownInside) return;
+                    pointerDownInside = false;
+                    toggleVideo(evt);
+                });
+                el.addEventListener('touchend', function (evt) {
+                    if (!pointerDownInside) return;
+                    pointerDownInside = false;
+                    toggleVideo(evt);
+                });
                 el.addEventListener('triggerdown', toggleVideo);
                 el.addEventListener('gripdown', toggleVideo);
                 if (video) {
@@ -1427,6 +1516,9 @@
             video.muted = false;
             video.volume = 1;
             video.playsInline = true;
+            if (!video.getAttribute('src') && video.dataset.src) {
+                video.setAttribute('src', video.dataset.src);
+            }
             if (video.readyState === 0) video.load();
 
             var playAttempt = video.play();
@@ -1441,6 +1533,7 @@
             var video = document.querySelector('#video-robot-bailando');
             if (!video) return;
             video.pause();
+            try { video.currentTime = 0; } catch (e) {}
             actualizarEstadoVideoRobotica(false);
         }
 
@@ -1634,7 +1727,7 @@
             'cafeteria_interior': {
                 imagen: 'imagenes/cafeteria_interior.jpg', rotacionSky: '0 -90 0',
                 flechas: [
-                    { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafeteria\nExterior' }
+                    { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafetería\nExterior' }
                 ]
             },
             'fuera': {
@@ -1694,7 +1787,7 @@
             'mundo_robotica': {
                 imagen: '#video-robotica-brazos', video360: true, rotacionSky: '0 -90 0',
                 flechas: [
-                    { target: 'robotica', position: '-0.65 2 -11.98', rotation: '0 0 0', label: 'Volver a Robotica' }
+                    { target: 'robotica', position: '-0.65 2 -11.98', rotation: '0 0 0', label: 'Volver a Robótica' }
                 ]
             }
         };
@@ -1735,7 +1828,7 @@
             ],
             'fisica': [
                 { target: 'datalab', position: '11.87 2 1.74', rotation: '0 -90 0', imgSrc: '#img-flecha-izquierda' },
-                { target: 'explanada', position: '7.67 2.8 -9.21', rotation: '0 140 0' }
+                { target: 'explanada', position: '9.07 2 -7.86', rotation: '0 0 0' }
             ],
             'conducta': [
                 { target: 'datalab', position: '0 -1 -10', rotation: '0 0 0', imgSrc: '#img-flecha-abajo' }
@@ -1744,7 +1837,7 @@
                 { target: 'datalab', position: '-9.25 2 -7.65', rotation: '0 0 0' }
             ],
             'mundo_robotica': [
-                { target: 'robotica', position: '-0.65 2 -11.98', rotation: '0 0 0', label: 'Volver a Robotica' }
+                { target: 'robotica', position: '-0.65 2 -11.98', rotation: '0 0 0', label: 'Volver a Robótica' }
             ],
             'datalab': [
                 { target: 'aula', position: '-11.99 2 0.58', rotation: '0 90 0' },
@@ -1770,10 +1863,10 @@
             'cafeteria': [
                 { target: 'estudio_mba', position: '-10.92 2 4.97', rotation: '0 0 0' },
                 { target: 'explanada', position: '10.02 2 6.60', rotation: '0 0 0' },
-                { target: 'cafeteria_interior', position: '1.91 -1 -11.85', rotation: '0 0 0', label: 'Cafeteria\nInterior' }
+                { target: 'cafeteria_interior', position: '1.91 -1 -11.85', rotation: '0 0 0', label: 'Cafetería\nInterior' }
             ],
             'cafeteria_interior': [
-                { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafeteria\nExterior' }
+                { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafetería\nExterior' }
             ]
         };
 
@@ -2062,7 +2155,7 @@
             contenedorFlechas.setAttribute('visible', 'false');
             btnLanzarMinijuego.setAttribute('visible', 'false');
             btnLanzarMinijuego.classList.remove('clickable');
-            if (nombreEscena !== 'robotica') pausarVideoRobotica();
+            pausarVideoRobotica();
             if (nombreEscena !== 'mundo_robotica') pausarVideo360Robotica();
 
             if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
@@ -2685,21 +2778,21 @@
         window.cardData2D = {
             'panel-info-entrada': {
                 title: 'Entrada Principal',
-                desc: 'Bienvenidos a una de las instituciones de educacion superior en negocios mas prestigiosas de America Latina.',
+                desc: 'Bienvenidos a una de las instituciones de educación superior en negocios más prestigiosas de América Latina.',
                 image: 'imagenes/Fotos/entradaPuertaF.webp',
                 scene: 'Entrada Principal'
             },
             'panel-info-fuera': {
                 title: 'Exterior Esan',
-                desc: 'Amplias areas verdes y zonas de transito que destacan nuestra moderna arquitectura.',
+                desc: 'Amplias áreas verdes y zonas de tránsito que destacan nuestra moderna arquitectura.',
                 image: 'imagenes/Fotos/fuenteF.webp',
                 scene: 'Exterior Esan'
             },
             'panel-info-cafeteria': {
-                title: 'Cafeteria Esan',
+                title: 'Cafetería Esan',
                 desc: 'El lugar favorito para estudiar en grupo, relajarse y disfrutar de una variada oferta.',
                 image: 'imagenes/cafeteriaF.webp',
-                scene: 'Cafeteria'
+                scene: 'Cafetería'
             }
         };
 
@@ -2868,12 +2961,12 @@
         </div>
         <div class="destinos-body">
             <div class="destinos-current">
-                <span class="destinos-label">Ubicacion actual</span>
+                <span class="destinos-label">Ubicación actual</span>
                 <strong id="destinos-current-name">Punto de inicio</strong>
             </div>
             <section class="destinos-why" aria-labelledby="destinos-why-title">
-                <h3 id="destinos-why-title">Por que Mapa ESAN?</h3>
-                <p>Demuestra orientacion dentro del campus: ayuda a reconocer los puntos principales, ubicarse con claridad y avanzar hacia espacios academicos, deportivos y de servicios desde una sola vista.</p>
+                <h3 id="destinos-why-title">¿Por qué Mapa ESAN?</h3>
+                <p>Demuestra orientación dentro del campus: ayuda a reconocer los puntos principales, ubicarse con claridad y avanzar hacia espacios académicos, deportivos y de servicios desde una sola vista.</p>
             </section>
             <section class="destinos-list" aria-labelledby="destinos-list-title">
                 <h3 id="destinos-list-title">Destinos</h3>
@@ -2903,7 +2996,7 @@
             <img id="img-entrada" src="imagenes/entrada esan.jpg">
             <img id="img-logo" src="imagenes/esann.png">
             <img id="img-robotica-preview" src="imagenes/Fotos/roboticaF.webp">
-            <video id="video-robot-bailando" src="videos/robotBailando.mp4" preload="metadata" playsinline webkit-playsinline></video>
+            <video id="video-robot-bailando" data-src="videos/robotBailando.mp4" preload="none" playsinline webkit-playsinline></video>
             <video id="video-robotica-brazos" data-src="videos/robot_Esplicacion.mp4" preload="none" playsinline webkit-playsinline></video>
             <canvas id="img-flecha-plana" width="128" height="128"></canvas>
             <canvas id="img-info-icon" width="128" height="128"></canvas>
@@ -3006,7 +3099,7 @@
                     position="0 1.15 0.01"></a-text>
 
                 <a-text
-                    value="Bienvenidos a una de las instituciones de educacion superior en negocios mas prestigiosas de America Latina."
+                    value="Bienvenidos a una de las instituciones de educación superior en negocios más prestigiosas de América Latina."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.2 0.02"
@@ -3022,10 +3115,10 @@
             <a-entity id="panel-info-RECEPCION-entrada" visible="false" smooth-follow card-style scale="1 1 1">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="RECEPCION" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="RECEPCIÓN" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Tu punto central de orientacion, atencion inicial y bienvenida al campus universitario."
+                    value="Tu punto central de orientación, atención inicial y bienvenida al campus universitario."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3066,7 +3159,7 @@
 
                 <a-text value="Espacio representativo" color="#E3173E" align="center" width="7" position="0 1.05 0.01"></a-text>
 
-                <a-text value="Nuestro gran emblema historico que representa los 60 anos de evolucion del campus."
+                <a-text value="Nuestro gran emblema histórico que representa los 60 años de evolución del campus."
                     color="#333333" align="center" width="3.5" position="0 -0.1 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.7 1.1 0.02"
@@ -3087,7 +3180,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Infraestructura que optimiza la interaccion entre docentes y alumnos para el analisis de casos."
+                    value="Infraestructura que optimiza la interacción entre docentes y alumnos para el análisis de casos."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3112,7 +3205,7 @@
                 <a-text value="COMEDOR Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Menus diarios balanceados y accesibles pensados para la convivencia y el descanso estudiantil."
+                    value="Menús diarios balanceados y accesibles pensados para la convivencia y el descanso estudiantil."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3133,7 +3226,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacios academicos disenados para conectar la teoria, la practica y la discusion interactiva."
+                    value="Espacios académicos diseñados para conectar la teoría, la práctica y la discusión interactiva."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3153,7 +3246,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Area clave encargada del soporte operativo y la gestion de procesos internos del campus."
+                    value="Área clave encargada del soporte operativo y la gestión de procesos internos del campus."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3197,7 +3290,7 @@
                 <a-text value="CAPILLA Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio sagrado de fe, oracion y recogimiento consagrado a la memoria de nuestra comunidad."
+                    value="Espacio sagrado de fe, oración y recogimiento consagrado a la memoria de nuestra comunidad."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3223,7 +3316,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Exhibicion de prototipos reales nacidos del diseno, la experimentacion y la fabricacion digital."
+                    value="Exhibición de prototipos reales nacidos del diseño, la experimentación y la fabricación digital."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3245,7 +3338,7 @@
                 <a-text value="IMPRESORAS 3D" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Equipos FDM de alta precision para materializar piezas y modelos funcionales capa por capa."
+                    value="Equipos FDM de alta precisión para materializar piezas y modelos funcionales capa por capa."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3265,7 +3358,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Herramienta de alta precision para transformar disenos digitales en piezas fisicas reales."
+                    value="Herramienta de alta precisión para transformar diseños digitales en piezas físicas reales."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3285,7 +3378,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio practico de fabricacion electronica para ensamblar circuitos y prototipos tecnologicos."
+                    value="Espacio práctico de fabricación electrónica para ensamblar circuitos y prototipos tecnológicos."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3328,7 +3421,7 @@
                 <a-text value="FABLAB Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Laboratorio de innovacion y prototipado donde el diseno digital se vuelve tangible."
+                    value="Laboratorio de innovación y prototipado donde el diseño digital se vuelve tangible."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3390,7 +3483,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio multideportivo ideal para entrenamientos, recreacion y dinamicas de integracion."
+                    value="Espacio multideportivo ideal para entrenamientos, recreación y dinámicas de integración."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3412,7 +3505,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacios de alto nivel disenados para potenciar la excelencia academica en maestrias y MBA."
+                    value="Espacios de alto nivel diseñados para potenciar la excelencia académica en maestrías y MBA."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3448,11 +3541,11 @@
             <a-entity id="panel-info-lab-fisica-quimica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/labFisicaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="Laboratorio de Fisica" color="#E3173E" align="center" width="7"
+                <a-text value="Laboratorio de Física" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Infraestructura cientifica disenada para validar la teoria mediante la experimentacion practica."
+                    value="Infraestructura científica diseñada para validar la teoría mediante la experimentación práctica."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3475,7 +3568,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="El corazon de la vida universitaria fuera del aula: ferias, lanzamientos y celebraciones."
+                    value="El corazón de la vida universitaria fuera del aula: ferias, lanzamientos y celebraciones."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3539,7 +3632,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Un entorno de silencio y concentracion con un amplio acervo fisico y digital de primer nivel."
+                    value="Un entorno de silencio y concentración con un amplio acervo físico y digital de primer nivel."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3579,7 +3672,7 @@
                 <a-text value="INPRO Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Nuestro grupo de improvisacion teatral ideal para potenciar la comunicacion, confianza y liderazgo."
+                    value="Nuestro grupo de improvisación teatral ideal para potenciar la comunicación, confianza y liderazgo."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3622,7 +3715,7 @@
                 <a-text value="CAJERO BCP" color="#E3173E" align="center" width="7" position="0 1.15 0.01"></a-text>
 
                 <a-text
-                    value="Operaciones bancarias y retiros rapidos de forma segura sin salir del campus universitario."
+                    value="Operaciones bancarias y retiros rápidos de forma segura sin salir del campus universitario."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.2 0.02"
@@ -3641,7 +3734,7 @@
                 <a-text value="LIBRERIA Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Textos especializados en negocios y articulos de escritorio para complementar tu formacion."
+                    value="Textos especializados en negocios y artículos de escritorio para complementar tu formación."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3660,7 +3753,7 @@
                 <a-text value="EDIFICIO D" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Entorno integral que reune aulas tecnologicas, areas docentes y convivencia estudiantil."
+                    value="Entorno integral que reúne aulas tecnológicas, áreas docentes y convivencia estudiantil."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3700,7 +3793,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Infraestructura esencial que brinda comodidad y accesibilidad en el entorno academico."
+                    value="Infraestructura esencial que brinda comodidad y accesibilidad en el entorno académico."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3723,7 +3816,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio de apoyo especializado en asesoria conductual, gestion emocional y bienestar integral."
+                    value="Espacio de apoyo especializado en asesoría conductual, gestión emocional y bienestar integral."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3784,7 +3877,7 @@
                 <a-text value="AULA DE CLASES" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacios tecnologicos disenados para el aprendizaje activo, debates y casos de negocio."
+                    value="Espacios tecnológicos diseñados para el aprendizaje activo, debates y casos de negocio."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3803,10 +3896,10 @@
             <a-entity id="panel-info-laboratorio" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/labComputoF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="LAB DE COMPUTO" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="LAB DE CÓMPUTO" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Equipado con PCs de alto rendimiento y software especializado en analisis de datos y simulacion."
+                    value="Equipado con PCs de alto rendimiento y software especializado en análisis de datos y simulación."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3826,7 +3919,7 @@
                     position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Eje central para la gestion de recursos digitales y ensenanza practica interactiva."
+                    value="Eje central para la gestión de recursos digitales y enseñanza práctica interactiva."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
@@ -3886,7 +3979,7 @@
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
                 <a-text value="Exterior Esan" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Amplias areas verdes y zonas de transito que destacan nuestra moderna arquitectura."
+                    value="Amplias áreas verdes y zonas de tránsito que destacan nuestra moderna arquitectura."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-fuera; action: close">
@@ -3904,7 +3997,7 @@
                 <a-text value="LABORATORIO DE FISICA" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Equipamiento de ultima generacion para el estudio experimental de fenomenos cientificos."
+                    value="Equipamiento de última generación para el estudio experimental de fenómenos científicos."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-fisica; action: close">
@@ -3919,10 +4012,10 @@
             </a-image>
             <a-entity id="panel-info-quimica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/quimicaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
-                <a-text value="LABORATORIO DE QUIMICA" color="#E3173E" align="center" width="7"
+                <a-text value="LABORATORIO DE QUÍMICA" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Entorno seguro y equipado para la practica cientifica aplicada a la innovacion industrial."
+                    value="Entorno seguro y equipado para la práctica científica aplicada a la innovación industrial."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-quimica; action: close">
@@ -3958,7 +4051,7 @@
                 <a-text value="SALA DE ESTUDIO MBA" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Espacios ejecutivos disenados para el co-working y la discusion de casos de gestion."
+                    value="Espacios ejecutivos diseñados para el co-working y la discusión de casos de gestión."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-estudio_mba; action: close">
@@ -3976,7 +4069,7 @@
                 <a-text value="SALA DE ESTUDIO MAGISTER" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Entorno de alto nivel academico para la investigacion y el desarrollo de tesis."
+                    value="Entorno de alto nivel académico para la investigación y el desarrollo de tesis."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-estudio_magister; action: close">
@@ -3997,7 +4090,7 @@
                 <a-text value="CAFETERIA INTERIOR Esan" color="#E3173E" align="center" width="7"
                     position="0 1.25 0.01"></a-text>
                 <a-text
-                    value="Ambiente moderno con variadas opciones gastronomicas que hacen mas amena la vida universitaria."
+                    value="Ambiente moderno con variadas opciones gastronómicas que hacen más amena la vida universitaria."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
                     hotspot-info="target: #panel-info-cafeteria_interior; action: close">
@@ -4035,10 +4128,10 @@
             <a-entity id="panel-info-laboratorio-robotica" visible="false" smooth-follow card-style scale="1 1 1" data-card-img="imagenes/Fotos/roboticaF.webp" data-premium="true">
                 <a-plane color="#FFFFFF" opacity="0.95" width="4" height="1.6" position="0 0 0"></a-plane>
 
-                <a-text value="LAB DE ROBOTICA" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
+                <a-text value="LAB DE ROBÓTICA" color="#E3173E" align="center" width="7" position="0 1.25 0.01"></a-text>
 
                 <a-text
-                    value="Espacio de investigacion aplicada en robotica, automatizacion y cursos tecnologicos especializados."
+                    value="Espacio de investigación aplicada en robótica, automatización y cursos tecnológicos especializados."
                     color="#333333" align="center" width="3.5" position="0 -0.15 0.01" wrap-count="35"></a-text>
 
                 <a-plane class="clickable close-btn" color="#FF0000" width="0.4" height="0.4" position="1.75 1.3 0.02"
