@@ -1295,6 +1295,21 @@
                 var data = this.data;
                 var previewEl = null;
                 var previewAttempts = 0;
+                var isPointerOver = false;
+                var shrinkTimer = null;
+
+                function setHoverScale(scale) {
+                    var value = scale + ' ' + scale + ' ' + scale;
+                    var current = el.getAttribute('scale');
+                    if (current && Math.abs(current.x - scale) < 0.001 && Math.abs(current.y - scale) < 0.001 && Math.abs(current.z - scale) < 0.001) return;
+                    el.setAttribute('scale', value);
+                }
+
+                function cancelShrink() {
+                    if (!shrinkTimer) return;
+                    clearTimeout(shrinkTimer);
+                    shrinkTimer = null;
+                }
 
                 function asegurarPreview() {
                     if (data.action === 'close' || previewEl) return;
@@ -1324,7 +1339,9 @@
 
                 el.addEventListener('mouseenter', function () {
                     if (data.action !== 'close') {
-                        el.setAttribute('scale', '0.9 0.9 0.9');
+                        isPointerOver = true;
+                        cancelShrink();
+                        setHoverScale(0.9);
                         if (!previewEl) previewEl = el._hotspotPreviewEl || crearPreviewHotspot(el, obtenerTituloPreviewHotspot(data.target));
                     } else {
                         el.setAttribute('color', '#FF5555');
@@ -1332,7 +1349,12 @@
                 });
                 el.addEventListener('mouseleave', function () {
                     if (data.action !== 'close') {
-                        el.setAttribute('scale', '0.8 0.8 0.8');
+                        isPointerOver = false;
+                        cancelShrink();
+                        shrinkTimer = setTimeout(function () {
+                            shrinkTimer = null;
+                            if (!isPointerOver) setHoverScale(0.8);
+                        }, 180);
                     } else {
                         el.setAttribute('color', '#FF0000');
                     }
@@ -2920,6 +2942,22 @@
             init: function () {
                 var panelId = this.data.panel.replace(/^#/, '');
                 var el = this.el;
+                var isPointerOver = false;
+                var shrinkTimer = null;
+
+                function setHoverScale(scale) {
+                    var value = scale + ' ' + scale + ' ' + scale;
+                    var current = el.getAttribute('scale');
+                    if (current && Math.abs(current.x - scale) < 0.001 && Math.abs(current.y - scale) < 0.001 && Math.abs(current.z - scale) < 0.001) return;
+                    el.setAttribute('scale', value);
+                }
+
+                function cancelShrink() {
+                    if (!shrinkTimer) return;
+                    clearTimeout(shrinkTimer);
+                    shrinkTimer = null;
+                }
+
                 el.addEventListener('click', function (evt) {
                     if (_isDragging) return;
                     if (evt.preventDefault) evt.preventDefault();
@@ -2929,10 +2967,17 @@
                     if (data) showCard2D(data.title, data.desc, data.image, data.scene);
                 });
                 el.addEventListener('mouseenter', function () {
-                    el.setAttribute('scale', '0.9 0.9 0.9');
+                    isPointerOver = true;
+                    cancelShrink();
+                    setHoverScale(0.9);
                 });
                 el.addEventListener('mouseleave', function () {
-                    el.setAttribute('scale', '0.8 0.8 0.8');
+                    isPointerOver = false;
+                    cancelShrink();
+                    shrinkTimer = setTimeout(function () {
+                        shrinkTimer = null;
+                        if (!isPointerOver) setHoverScale(0.8);
+                    }, 180);
                 });
             }
         });
