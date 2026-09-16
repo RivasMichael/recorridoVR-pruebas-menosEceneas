@@ -2187,6 +2187,13 @@
             }
             var tokenTransicion = ++_transicionToken;
             _transicionActiva = true;
+            var transitionWatchdog = setTimeout(function () {
+                if (tokenTransicion !== _transicionToken || !_transicionActiva) return;
+                console.warn('Transicion forzada por tiempo de espera:', nombreEscena);
+                ocultarLoader(true);
+                _transicionActiva = false;
+                refreshRaycasters();
+            }, 6500);
             if (datos && datos.imagen && !datos.imagen.startsWith('#') && !_preCache[datos.imagen]) {
                 _preCache[datos.imagen] = true;
                 var _warmImg = new Image();
@@ -2248,6 +2255,7 @@
                     if (tokenTransicion !== _transicionToken) return;
                     if (_revealed) return;
                     _revealed = true;
+                    clearTimeout(transitionWatchdog);
                     clearTimeout(_revealTimeout);
                     cieloFondo.removeEventListener('materialtextureloaded', revelarEscena);
                     contenedorFlechas.setAttribute('visible', 'true');
@@ -2275,6 +2283,9 @@
                 }
 
                 cieloFondo.addEventListener('materialtextureloaded', revelarEscena);
+                if (datos.video360 && video360Fondo) {
+                    video360Fondo.addEventListener('materialtextureloaded', revelarEscena, { once: true });
+                }
                 _revealTimeout = setTimeout(revelarEscena, datos.video360 ? 1800 : 2500);
             }, duracionFade + 50);
         }
@@ -2820,6 +2831,7 @@
             _loaderOculto = true;
             var loader = document.getElementById('pantalla-carga');
             var loaderVr = document.getElementById('vr-loader');
+            if (loaderVr) loaderVr.setAttribute('visible', 'false');
             if (loader) {
                 var esperaRestante = sinEsperaMinima ? 0 : Math.max(0, _loaderMinimoMs - (Date.now() - _inicioApp));
                 setTimeout(function () {
@@ -2828,7 +2840,6 @@
                             loader.classList.add('oculto');
                             setTimeout(() => {
                                 loader.style.display = 'none';
-                                if (loaderVr) loaderVr.setAttribute('visible', 'false');
                                 window.dispatchEvent(new Event('resize'));
                             }, 1000);
                         });
@@ -4201,8 +4212,8 @@
         </a-entity>
 
         <a-entity id="hotspots-robotica" class="grupo-hotspots" visible="false">
-            <a-circle src="#img-logo" radius="0.85" position="0 -0.5 0" rotation="-90 0 0"
-                material="transparent: true; opacity: 1; shader: flat"></a-circle>
+            <a-circle geometry="primitive: circle; radius: 0.85; segments: 96" position="0 -0.5 0" rotation="-90 0 0"
+                material="shader: flat; src: #img-logo; transparent: true; opacity: 1; side: double"></a-circle>
 
             <a-image src="#img-info-icon" position="11.90 2 -1.56" scale="0.8 0.8 0.8" look-at="[camera]"
                 class="clickable icono-hotspot" hotspot-info="target: #panel-info-laboratorio-robotica; action: toggle">
@@ -4260,8 +4271,8 @@
         </a-entity>
 
         <a-entity id="hotspots-mundo_robotica" class="grupo-hotspots" visible="false">
-            <a-circle src="#img-logo" radius="0.85" position="0 -0.5 0" rotation="-90 0 0"
-                material="transparent: true; opacity: 1; shader: flat"></a-circle>
+            <a-circle geometry="primitive: circle; radius: 0.85; segments: 96" position="0 -0.5 0" rotation="-90 0 0"
+                material="shader: flat; src: #img-logo; transparent: true; opacity: 1; side: double"></a-circle>
         </a-entity>
 
         <a-entity id="btn-lanzar-minijuego" position="3 1.5 -8" look-at="[camera]" visible="false"
@@ -4326,21 +4337,24 @@
         </a-entity>
 
         <a-entity id="rig" position="0 1.6 0" auto-height rotation="0 0 0">
-            <a-image id="logo-posicion-usuario" src="#img-logo" position="0 -1.58 0" rotation="-90 0 0"
-                width="2.4" height="2.4" material="transparent: true; shader: flat; depthTest: false">
-            </a-image>
+            <a-circle id="logo-posicion-usuario" geometry="primitive: circle; radius: 1.18; segments: 96"
+                position="0 -1.58 0" rotation="-90 0 0"
+                material="shader: flat; src: #img-logo; transparent: true; side: double; depthTest: false">
+            </a-circle>
 
             <a-camera id="camara-principal" camera wasd-controls-enabled="false" look-controls="reverseMouseDrag: true">
                 <a-entity id="vr-loader" position="0 0 -2.2" visible="true">
                     <a-plane width="24" height="14" position="0 0 -0.08"
                         material="color: #000000; opacity: 1; shader: flat; depthTest: false"></a-plane>
-                    <a-image src="#img-logo" width="0.95" height="0.36" position="0 0.43 0.01"
-                        material="transparent: true; shader: flat"></a-image>
-                    <a-entity troika-text="value: Esan Xperience 360; align: center; color: #FFFFFF; fontSize: 0.16; maxWidth: 2.8"
-                        position="0 0.07 0.02"></a-entity>
+                    <a-circle geometry="primitive: circle; radius: 0.34; segments: 96" position="0 0.50 0.01"
+                        material="shader: flat; color: #FFFFFF; opacity: 1; side: double; depthTest: false"></a-circle>
+                    <a-circle geometry="primitive: circle; radius: 0.30; segments: 96" position="0 0.50 0.02"
+                        material="shader: flat; src: #img-logo; transparent: true; side: double; depthTest: false"></a-circle>
+                    <a-entity troika-text="value: Esan Xperience 360; textAlign: center; anchorX: center; anchorY: middle; color: #FFFFFF; fontSize: 0.18; maxWidth: 2.8; fontWeight: bold; outlineWidth: 0.006; outlineColor: #000000"
+                        position="0 0.05 0.02"></a-entity>
                     <a-entity id="vr-loader-text"
-                        troika-text="value: Iniciando realidad virtual; align: center; color: #E3173E; fontSize: 0.095; maxWidth: 2.6"
-                        position="0 -0.20 0.02"></a-entity>
+                        troika-text="value: Iniciando realidad virtual; textAlign: center; anchorX: center; anchorY: middle; color: #FF365A; fontSize: 0.105; maxWidth: 2.6; fontWeight: bold"
+                        position="0 -0.22 0.02"></a-entity>
                     <a-plane width="1.25" height="0.035" position="0 -0.48 0.02"
                         material="color: #333333; shader: flat"></a-plane>
                     <a-plane width="0.55" height="0.035" position="-0.35 -0.48 0.03"
