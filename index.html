@@ -2016,6 +2016,7 @@
             init: function () {
                 var el = this.el;
                 el.addEventListener('click', function (evt) {
+                    if (_transicionActiva) return;
                     if (_isDragging) return;
                     var hotspotCercano = hotspotVisibleCercanoAlClick(evt);
                     if (hotspotCercano) {
@@ -2047,6 +2048,7 @@
             init: function () {
                 var el = this.el;
                 el.addEventListener('click', function () {
+                    if (_transicionActiva) return;
                     var target = el.getAttribute('data-target');
                     if (target) { toggleMenu3D(); iniciarTransicion(target); }
                 });
@@ -2179,7 +2181,40 @@
         var _transicionToken = 0;
         var _transicionActiva = false;
 
+        function precargarEscenaAntesDeEntrar(datos, onReady, onError) {
+            var src = datos && datos.imagen;
+            if (!src || src.startsWith('#')) {
+                onReady();
+                return;
+            }
+
+            var terminado = false;
+            var img = new Image();
+            var timeout = setTimeout(function () {
+                if (terminado) return;
+                terminado = true;
+                console.warn('Precarga lenta cancelada, se mantiene la escena actual:', src);
+                if (onError) onError();
+            }, 15000);
+            img.onload = function () {
+                if (terminado) return;
+                terminado = true;
+                clearTimeout(timeout);
+                _preCache[src] = true;
+                onReady();
+            };
+            img.onerror = function () {
+                if (terminado) return;
+                terminado = true;
+                clearTimeout(timeout);
+                console.warn('No se pudo precargar la escena:', src);
+                if (onError) onError();
+            };
+            img.src = src;
+        }
+
         function iniciarTransicion(nombreEscena, direccionDeseada) {
+            if (_transicionActiva) return;
             var datos = escenas[nombreEscena];
             if (!datos) {
                 console.warn('Escena no encontrada:', nombreEscena);
@@ -2187,18 +2222,19 @@
             }
             var tokenTransicion = ++_transicionToken;
             _transicionActiva = true;
-            var transitionWatchdog = setTimeout(function () {
-                if (tokenTransicion !== _transicionToken || !_transicionActiva) return;
-                console.warn('Transicion forzada por tiempo de espera:', nombreEscena);
-                ocultarLoader(true);
+            var loaderVr = document.getElementById('vr-loader');
+            if (loaderVr) loaderVr.setAttribute('visible', 'false');
+
+            precargarEscenaAntesDeEntrar(datos, function () {
+                if (tokenTransicion !== _transicionToken) return;
+                ejecutarTransicionLista();
+            }, function () {
+                if (tokenTransicion !== _transicionToken) return;
                 _transicionActiva = false;
                 refreshRaycasters();
-            }, 6500);
-            if (datos && datos.imagen && !datos.imagen.startsWith('#') && !_preCache[datos.imagen]) {
-                _preCache[datos.imagen] = true;
-                var _warmImg = new Image();
-                _warmImg.src = datos.imagen;
-            }
+            });
+
+            function ejecutarTransicionLista() {
             var contenedorFlechas = document.querySelector('#flechas-container');
             var cieloFondo = document.querySelector('#cielo-fondo');
             var video360Fondo = document.querySelector('#video-360-fondo');
@@ -2207,7 +2243,6 @@
             var fondoOscuro = document.querySelector('#hotspot-darkbg');
             var duracionFade = 300;
 
-            mostrarLoaderTransicion('Cargando escena');
             if (overlayFade) overlayFade.setAttribute('material', 'opacity', 0);
             contenedorFlechas.setAttribute('visible', 'false');
             btnLanzarMinijuego.setAttribute('visible', 'false');
@@ -2255,7 +2290,6 @@
                     if (tokenTransicion !== _transicionToken) return;
                     if (_revealed) return;
                     _revealed = true;
-                    clearTimeout(transitionWatchdog);
                     clearTimeout(_revealTimeout);
                     cieloFondo.removeEventListener('materialtextureloaded', revelarEscena);
                     contenedorFlechas.setAttribute('visible', 'true');
@@ -2288,6 +2322,7 @@
                 }
                 _revealTimeout = setTimeout(revelarEscena, datos.video360 ? 1800 : 2500);
             }, duracionFade + 50);
+            }
         }
 
         function resetearPelota() {
@@ -2857,8 +2892,10 @@
                 if (!destino) return;
                 var src = destino.imagen;
                 if (!src || src.startsWith('#') || _preCache[src]) return;
-                _preCache[src] = true;
                 var img = new Image();
+                img.onload = function () {
+                    _preCache[src] = true;
+                };
                 img.src = src;
             });
         }
