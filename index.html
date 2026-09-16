@@ -609,9 +609,9 @@
             'explanada': 'Explanada\nConvention', 'eventos': 'Eventos',
             'butacas': 'Butacas', 'biblioteca': 'Biblioteca',
             'aula': 'Aula', 'fisica': 'Lab de\nFísica', 'conducta': 'Lab de\nConducta',
-            'robotica': 'Lab de\nRobótica', 'mundo_robotica': 'Mundo 360\nRobótica', 'datalab': 'Data Lab', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
+            'robotica': 'Lab\nrobótica', 'mundo_robotica': 'Mundo 360\nrobótica', 'datalab': 'Data Lab', 'fablab': 'FabLab', 'fablab2': 'FabLab 2',
             'estudio_pregrado': 'Sala Estudio\nPregrado', 'estudio_mba': 'Sala Estudio\nMBA',
-            'cafeteria': 'Cafetería', 'cafeteria_interior': 'Cafetería\nInterior'
+            'cafeteria': 'Cafetería', 'cafeteria_interior': 'Cafetería\ninterior'
         };
 
         const destinosMVP = [
@@ -1115,6 +1115,7 @@
             var tituloNormalizado = limpio.charAt(0).toLocaleUpperCase('es-PE') + limpio.slice(1);
             return tituloNormalizado
                 .replace(/\besan\b/gi, 'Esan')
+                .replace(/\bmba\b/gi, 'MBA')
                 .replace(/\bfablab\b/gi, 'FabLab')
                 .replace(/\bdata lab\b/gi, 'Data Lab')
                 .replace(/\bdatalab\b/gi, 'Data Lab')
@@ -1905,7 +1906,7 @@
             'cafeteria': [
                 { target: 'estudio_mba', position: '-10.92 2 4.97', rotation: '0 0 0' },
                 { target: 'explanada', position: '10.02 2 6.60', rotation: '0 0 0' },
-                { target: 'cafeteria_interior', position: '1.91 -1 -11.85', rotation: '0 0 0', label: 'Cafetería\nInterior' }
+                { target: 'cafeteria_interior', position: '1.91 -1 -11.85', rotation: '0 0 0', label: 'Cafetería\ninterior' }
             ],
             'cafeteria_interior': [
                 { target: 'cafeteria', position: '0 2.5 11', rotation: '0 180 0', imgSrc: '#img-flecha-derecha', label: 'Cafetería\nExterior' }
@@ -2464,11 +2465,17 @@
                 btn.setAttribute('class', 'menu-btn'); btn.setAttribute('data-target', key);
                 btn.setAttribute('menu-interactivo', '');
 
-                var txt = document.createElement('a-text');
-                txt.setAttribute('value', nombresDestinos[key]);
-                txt.setAttribute('align', 'center'); txt.setAttribute('color', '#FFFFFF');
-                txt.setAttribute('font', 'exo2semibold');
-                txt.setAttribute('width', '0.70'); txt.setAttribute('wrap-count', '12');
+                var txt = document.createElement('a-entity');
+                txt.setAttribute('troika-text', {
+                    value: nombresDestinos[key],
+                    color: '#FFFFFF',
+                    fontSize: 0.085,
+                    maxWidth: 0.68,
+                    textAlign: 'center',
+                    anchorX: 'center',
+                    anchorY: 'middle',
+                    fontWeight: 'bold'
+                });
                 txt.setAttribute('position', '0 0 0.02');
                 btn.appendChild(txt);
                 menu.appendChild(btn);
@@ -4325,8 +4332,8 @@
 
             <a-camera id="camara-principal" camera wasd-controls-enabled="false" look-controls="reverseMouseDrag: true">
                 <a-entity id="vr-loader" position="0 0 -2.2" visible="true">
-                    <a-plane width="3.4" height="2.0" position="0 0 -0.02"
-                        material="color: #000000; opacity: 0.92; shader: flat"></a-plane>
+                    <a-plane width="24" height="14" position="0 0 -0.08"
+                        material="color: #000000; opacity: 1; shader: flat; depthTest: false"></a-plane>
                     <a-image src="#img-logo" width="0.95" height="0.36" position="0 0.43 0.01"
                         material="transparent: true; shader: flat"></a-image>
                     <a-entity troika-text="value: Esan Xperience 360; align: center; color: #FFFFFF; fontSize: 0.16; maxWidth: 2.8"
