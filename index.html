@@ -1625,7 +1625,7 @@
                 ]
             },
             'jardin': {
-                imagen: 'imagenes/jardin.jpg', rotacionSky: '0 -90 0',
+                imagen: 'imagenes/jardin-optimizada.jpg', rotacionSky: '0 -90 0',
                 flechas: [
                     { target: 'fuente', position: '-11.99 3 -0.5', rotation: '0 0 0' },
                     { target: 'edificioD', position: '-0.17 3.2 -12', rotation: '0 -45 0' },
@@ -2180,6 +2180,7 @@
 
         var _transicionToken = 0;
         var _transicionActiva = false;
+        var _cieloActivoId = 'cielo-fondo';
 
         function precargarEscenaAntesDeEntrar(datos, onReady, onError) {
             var src = datos && datos.imagen;
@@ -2197,11 +2198,18 @@
                 if (onError) onError();
             }, 15000);
             img.onload = function () {
-                if (terminado) return;
-                terminado = true;
-                clearTimeout(timeout);
-                _preCache[src] = true;
-                onReady();
+                function finalizarPrecarga() {
+                    if (terminado) return;
+                    terminado = true;
+                    clearTimeout(timeout);
+                    _preCache[src] = true;
+                    onReady();
+                }
+                if (img.decode) {
+                    img.decode().catch(function () {}).then(finalizarPrecarga);
+                } else {
+                    finalizarPrecarga();
+                }
             };
             img.onerror = function () {
                 if (terminado) return;
@@ -2224,6 +2232,7 @@
             _transicionActiva = true;
             var loaderVr = document.getElementById('vr-loader');
             if (loaderVr) loaderVr.setAttribute('visible', 'false');
+            mostrarLoaderTransicion('Cargando escena…');
 
             precargarEscenaAntesDeEntrar(datos, function () {
                 if (tokenTransicion !== _transicionToken) return;
@@ -2231,12 +2240,16 @@
             }, function () {
                 if (tokenTransicion !== _transicionToken) return;
                 _transicionActiva = false;
+                ocultarLoader(true);
                 refreshRaycasters();
             });
 
             function ejecutarTransicionLista() {
             var contenedorFlechas = document.querySelector('#flechas-container');
-            var cieloFondo = document.querySelector('#cielo-fondo');
+            var cieloFondo = document.getElementById(_cieloActivoId);
+            var cieloDestino = document.getElementById(
+                _cieloActivoId === 'cielo-fondo' ? 'cielo-precarga' : 'cielo-fondo'
+            );
             var video360Fondo = document.querySelector('#video-360-fondo');
             var overlayFade = document.querySelector('#overlay-fade');
             var btnLanzarMinijuego = document.querySelector('#btn-lanzar-minijuego');
@@ -2244,45 +2257,9 @@
             var duracionFade = 300;
 
             if (overlayFade) overlayFade.setAttribute('material', 'opacity', 0);
-            contenedorFlechas.setAttribute('visible', 'false');
-            btnLanzarMinijuego.setAttribute('visible', 'false');
-            btnLanzarMinijuego.classList.remove('clickable');
-            pausarVideoRobotica();
-            if (nombreEscena !== 'mundo_robotica') pausarVideo360Robotica();
-
-            if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
-
-            var todosHotspots = document.querySelectorAll('.grupo-hotspots');
-            todosHotspots.forEach(function (grupo) {
-                grupo.setAttribute('visible', 'false');
-                var paneles = grupo.querySelectorAll('.panel-activo');
-                paneles.forEach(p => {
-                    p.setAttribute('visible', 'false');
-                    p.classList.remove('panel-activo');
-                });
-                var iconos = grupo.querySelectorAll('.icono-hotspot');
-                iconos.forEach(i => i.classList.add('clickable'));
-            });
 
             setTimeout(() => {
                 if (tokenTransicion !== _transicionToken) return;
-                if (datos.video360 && video360Fondo) {
-                    prepararVideo360Robotica();
-                    cieloFondo.setAttribute('visible', 'false');
-                    video360Fondo.setAttribute('src', datos.imagen);
-                    video360Fondo.setAttribute('rotation', datos.rotacionSky || "0 -90 0");
-                    video360Fondo.setAttribute('visible', 'true');
-                    reproducirVideo360Robotica();
-                } else {
-                    if (video360Fondo) video360Fondo.setAttribute('visible', 'false');
-                    cieloFondo.setAttribute('visible', 'true');
-                    cieloFondo.setAttribute('src', datos.imagen);
-                    cieloFondo.setAttribute('rotation', datos.rotacionSky || "0 -90 0");
-                }
-                generarFlechas(datos.flechas);
-
-                aplicarInicioEscena(nombreEscena, direccionDeseada);
-
                 var _revealed = false;
                 var _revealTimeout;
 
@@ -2291,7 +2268,32 @@
                     if (_revealed) return;
                     _revealed = true;
                     clearTimeout(_revealTimeout);
-                    cieloFondo.removeEventListener('materialtextureloaded', revelarEscena);
+                    cieloDestino.removeEventListener('materialtextureloaded', revelarEscena);
+
+                    if (!datos.video360) {
+                        if (video360Fondo) video360Fondo.setAttribute('visible', 'false');
+                        cieloFondo.setAttribute('visible', 'false');
+                        cieloDestino.setAttribute('visible', 'true');
+                        _cieloActivoId = cieloDestino.id;
+                    } else {
+                        cieloFondo.setAttribute('visible', 'false');
+                        video360Fondo.setAttribute('visible', 'true');
+                    }
+                    pausarVideoRobotica();
+                    if (nombreEscena !== 'mundo_robotica') pausarVideo360Robotica();
+                    if (fondoOscuro) fondoOscuro.setAttribute('visible', 'false');
+
+                    document.querySelectorAll('.grupo-hotspots').forEach(function (grupo) {
+                        grupo.setAttribute('visible', 'false');
+                        grupo.querySelectorAll('.panel-activo').forEach(function (panel) {
+                            panel.setAttribute('visible', 'false');
+                            panel.classList.remove('panel-activo');
+                        });
+                    });
+                    btnLanzarMinijuego.setAttribute('visible', 'false');
+                    btnLanzarMinijuego.classList.remove('clickable');
+                    generarFlechas(datos.flechas);
+                    aplicarInicioEscena(nombreEscena, direccionDeseada);
                     contenedorFlechas.setAttribute('visible', 'true');
 
                     if (nombreEscena === 'basquet') {
@@ -2316,11 +2318,30 @@
                     precargarAdyacentes(nombreEscena);
                 }
 
-                cieloFondo.addEventListener('materialtextureloaded', revelarEscena);
+                cieloDestino.addEventListener('materialtextureloaded', revelarEscena);
                 if (datos.video360 && video360Fondo) {
                     video360Fondo.addEventListener('materialtextureloaded', revelarEscena, { once: true });
+                    prepararVideo360Robotica();
+                    video360Fondo.setAttribute('src', datos.imagen);
+                    video360Fondo.setAttribute('rotation', datos.rotacionSky || "0 -90 0");
+                    video360Fondo.setAttribute('visible', 'false');
+                    reproducirVideo360Robotica();
+                } else {
+                    cieloDestino.setAttribute('visible', 'false');
+                    var texturaYaPreparada = cieloDestino.getAttribute('src') === datos.imagen;
+                    cieloDestino.setAttribute('src', datos.imagen);
+                    cieloDestino.setAttribute('rotation', datos.rotacionSky || "0 -90 0");
+                    if (texturaYaPreparada) requestAnimationFrame(revelarEscena);
                 }
-                _revealTimeout = setTimeout(revelarEscena, datos.video360 ? 1800 : 2500);
+                _revealTimeout = setTimeout(function () {
+                    if (_revealed || tokenTransicion !== _transicionToken) return;
+                    cieloDestino.removeEventListener('materialtextureloaded', revelarEscena);
+                    cieloDestino.setAttribute('visible', 'false');
+                    _transicionActiva = false;
+                    ocultarLoader(true);
+                    refreshRaycasters();
+                    console.warn('La escena nueva no terminó de prepararse; se conserva la escena actual.');
+                }, datos.video360 ? 12000 : 10000);
             }, duracionFade + 50);
             }
         }
@@ -3219,6 +3240,7 @@
         </script>
 
         <a-sky id="cielo-fondo" radius="500" rotation="0 -90 0"></a-sky>
+        <a-sky id="cielo-precarga" radius="500" rotation="0 -90 0" visible="false"></a-sky>
         <a-videosphere id="video-360-fondo" radius="500" rotation="0 -90 0" visible="false"></a-videosphere>
 
         <a-entity id="cubos" cubos-digitales></a-entity>
